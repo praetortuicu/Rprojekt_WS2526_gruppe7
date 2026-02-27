@@ -10,11 +10,15 @@ Node	<-	S7::new_class("Node",
 )
 
 ###		GENERICS	###
-is_root		<-	S7::new_generic("is_root",	"node")
-get_parent	<-	S7::new_generic("get_parent",	"node")
-set_parent	<-	S7::new_generic("set_parent",	"node")
-get_value	<-	S7::new_generic("get_value",	"node")
-set_value	<-	S7::new_generic("set_value",	"node")
+is_root			<-	S7::new_generic("is_root",	"node")
+get_parent		<-	S7::new_generic("get_parent",	"node")
+set_parent		<-	S7::new_generic("set_parent",	"node")
+get_value		<-	S7::new_generic("get_value",	"node")
+set_value		<-	S7::new_generic("set_value",	"node")
+get_left_child	<-	S7:::new_generic("get_left_child",	"node")
+get_right_child	<-	S7:::new_generic("get_right_child",	"node")
+set_left_child	<-	S7:::new_generic("get_left_child",	"node")
+set_right_child	<-	S7:::new_generic("set_right_child",	"node")
 
 ###		GETTERS	###
 
@@ -33,6 +37,40 @@ S7::method(get_parent,	Node)	<-	function(node)	{
 			}
 }
 
+#'	Get value of target node
+#'
+#'	@name	Node@get_value
+#'	@param	node				A node object
+#'	@return	node@value			A double corresponding to the node's value
+#'	@examples
+#'	get_value(node)
+S7::method(get_value,	Node)	<-	function(node)	{
+			return(node@value)
+}
+
+#'	Get the left child of the node
+#'
+#'	@name	Node@get_left_child
+#'	@param	node				A node object
+#'	@return	node@left_node		A node object corresponding to the left child 
+#'	@examples
+#'	get_left_child(node)
+S7::method(get_left_child,	Node)	<-	function(node)	{
+			return(node@ref$left_node)
+}
+
+
+#'	Get the right child of the node
+#'
+#'	@name	Node@get_right_child
+#'	@param	node				A node object
+#'	@return	node@right_node		A node object corresponding to the right child 
+#'	@examples
+#'	get_right_child(node)
+S7::method(get_right_child,	Node)	<-	function(node)	{
+			return(node@ref$right_node)
+}
+
 ###		SETTERS	###
 
 #'	Set the parent node of the target to a new node object
@@ -49,6 +87,45 @@ S7::method(set_parent,	Node)	<-	function(node,	new_parent_node	)	{
 
 			node@ref$parent_node	<-	new_parent_node
 }
+
+#'	Set value of target node
+#'
+#'	@name	Node@set_value
+#'	@param	node				A node object
+#'	@param	value				A double value to set
+#'	@return	void				Void
+#'	@examples
+#'	set_value(node)
+S7::method(set_value,	Node)	<-	function(node,	value)	{
+			node@ref$value	<-	value
+}
+
+#'	Set the left child of the node
+#'
+#'	@name	Node@get_left_child
+#'	@param	node					A node object
+#'	@param	new_node				A node object
+#'	@return	node@left_node			A node object corresponding to the left child 
+#'	@examples
+#'	set_left_child(node)
+S7::method(set_left_child,	Node)	<-	function(node,	new_node)	{
+			node@ref$left_node	<-	new_node
+}
+
+#'	Set the right child of the node
+#'
+#'	@name	Node@set_right_child
+#'	@param	node					A node object
+#'	@param	new_node				A node object
+#'	@return	node@right_node			A node object corresponding to the right child 
+#'	@examples
+#'	set_right_child(node)
+S7::method(set_right_child,	Node)	<-	function(node,	new_node)	{
+			node@ref$right_node	<-	new_node
+}
+
+
+###		VALIDATORS	###
 
 #'	Verify if node is root
 #'
