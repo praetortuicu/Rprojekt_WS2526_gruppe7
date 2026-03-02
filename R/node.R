@@ -5,20 +5,31 @@ Node	<-	S7::new_class("Node",
 				parent_node	=	S7::new_property(								default	=	NULL),
 				left_node	=	S7::new_property(								default	=	NULL),
 				right_node	=	S7::new_property(								default	=	NULL),
-				ref			=	S7::new_property(S7::class_environment,	default	=	new.env(parent	=	emptyenv()))
+				ref			=	S7::new_property(S7::class_environment,	default	=	new.env(parent	=	emptyenv())),
+				s_feature	=	S7::new_property(S7::class_double,	default	=	NA_real_),
+				s_value		=	S7::new_property(S7::class_double,	default	=	NA_real_),
+				leaf_value	=	S7::new_property(S7::class_double,	default	=	NA_real_)
 			)
 )
 
 ###		GENERICS	###
-is_root			<-	S7::new_generic("is_root",	"node")
-get_parent		<-	S7::new_generic("get_parent",	"node")
-set_parent		<-	S7::new_generic("set_parent",	"node")
-get_value		<-	S7::new_generic("get_value",	"node")
-set_value		<-	S7::new_generic("set_value",	"node")
-get_left_child	<-	S7:::new_generic("get_left_child",	"node")
-get_right_child	<-	S7:::new_generic("get_right_child",	"node")
-set_left_child	<-	S7:::new_generic("get_left_child",	"node")
-set_right_child	<-	S7:::new_generic("set_right_child",	"node")
+is_root				<-	S7::new_generic("is_root",	"node")
+is_leaf				<-	S7::new_generic("is_leaf",	"node")
+
+get_parent			<-	S7::new_generic("get_parent",	"node")
+set_parent			<-	S7::new_generic("set_parent",	"node")
+get_value			<-	S7::new_generic("get_value",	"node")
+set_value			<-	S7::new_generic("set_value",	"node")
+
+get_left_child		<-	S7:::new_generic("get_left_child",	"node")
+get_right_child		<-	S7:::new_generic("get_right_child",	"node")
+set_left_child		<-	S7:::new_generic("get_left_child",	"node")
+set_right_child		<-	S7:::new_generic("set_right_child",	"node")
+assign_children		<-	S7::new_generic("assign_children",	"node")
+
+assign_left_child	<-	S7::new_generic("assign_left_child",	"node")
+assign_right_child	<-	S7::new_generic("assign_right_child",	"node")
+remove_child		<-	S7::new_generic("remove_child",			"node")
 
 ###		GETTERS	###
 
@@ -58,7 +69,6 @@ S7::method(get_value,	Node)	<-	function(node)	{
 S7::method(get_left_child,	Node)	<-	function(node)	{
 			return(node@ref$left_node)
 }
-
 
 #'	Get the right child of the node
 #'
@@ -139,4 +149,76 @@ S7::method(is_root,	Node)	<-	function(node)	{
 			if	(node@ROOT)	{
 				return(TRUE)
 			}	else	{	return(FALSE)	}
+}
+
+###		DATA	###
+
+#'	Assign left child to a node
+#'	@name	node@assign_left_child
+#'	@param	node	A node object
+#'	@param	child2be	A node object
+#'	@return	void
+#'	@examples
+#'	assign_left_child(node,	child)
+
+S7::method(assign_left_child,	Node)	<-	function(node,	child2be)	{
+			if	(is.null(child2be))	{
+				stop("Cannot add invalid object as child!\n")
+			}	else	if	(identical(get_left_child(node),	NULL))	{
+				set_left_child(node,	child2be)
+			}	else	if	(get_value(get_left_child(node))	>	get_value(child2be))	{
+				#	TODO
+			}	else	if	(get_value(get_left_child(node))	<	get_value(child2be))	{
+				#	TODO
+			}
+}
+
+#'	Assign right child to a node
+#'	@name	node@assign_right_child
+#'	@param	node	A node object
+#'	@param	child2be	A node object
+#'	@return	void
+#'	@examples
+#'	assign_right_child(node,	child)
+
+S7::method(assign_right_child,	Node)	<-	function(node,	child2be)	{
+			if	(is.null(child2be))	{
+				stop("Cannot add invalid object as child!\n")
+			}	else	if	(identical(get_right_child(node),	NULL))	{
+				set_right_child(node,	child2be)
+			}	else	if	(get_value(get_right_child(node))	>	get_value(child2be))	{
+				#	TODO
+			}	else	if	(get_value(get_left_child(node))	<	get_value(child2be))	{
+				#	TODO
+			}
+}
+#	TODO refactor this to be less text see function below
+#'	Assign children to a node
+#'	@name	node@assign_children
+#'	@param	node	A node object, to which children are assigned
+#'	@param	child1	A node object, to assign to node
+#'	@param	child2	(Optional) A further node object, to assign to node
+#'	@return	void
+#'	@examples
+#'	assign_children(node,	child1,	child2)
+#'	assign_children(node,	child)
+
+S7::method(assign_children,	Node)	<-	function(node,	child1,	child2=NULL)	{
+			if	(is.null(child1))	{
+				stop("You must provide at least one node!\n")
+			}	else	if	(get_value(get_right_child(node))	>	get_value(child1))	{
+				assign_left_child(node,	child1)
+			}
+}
+
+#'	Remove child from node
+#'	@name	node@remove_child
+#'	@param	node	A (parent) node object
+#'	@param	node	A (child) node object
+#'	@param	return	void
+#'	@examples
+#'	remove_child(node,	child)
+
+S7::method(remove_child,	Node)	<-	function(node,	child)	{
+			#	TODO
 }

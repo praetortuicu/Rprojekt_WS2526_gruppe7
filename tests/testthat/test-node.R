@@ -52,8 +52,16 @@ test_that("Node correctly assigns children left/right by value",	{
 			set_value(node3,	3)
 			set_value(node4,	4)
 
+			testthat::expect_error(assign_left_child(root,	NULL))
+			testthat::expect_error(assign_right_child(root,	NULL))
+			testthat::expect_no_error(assign_left_child(root,	node1))
+			testthat::expect_error(assign_left_child(root,	node3))
+			testthat::expect_no_error(assign_right_child(root,	node2))
+			testthat::expect_no_error(remove_child(root,	node1))
+			testthat::expect_no_error(remove_child(root,	node2))
+
 			testthat::expect_no_error(assign_children(root,	node1,	node2))
-			testthat::expect_less_than(get_value(get_left_child(root)),	get_value(get_right_child(root)))
+			testthat::expect_lt(get_value(get_left_child(root)),	get_value(get_right_child(root)))
 			testthat::expect_error(assign_children(root,	node3,	node4))
 
 })
