@@ -2,7 +2,7 @@
 % Please edit documentation in R/node.R
 \name{Node@get_value}
 \alias{Node@get_value}
-\title{Get value of target node}
+\title{Get value of target node. If the node is a leaf, then leaf_value is returned, otherwise the split value is returned.}
 \arguments{
 \item{node}{A node object}
 }
@@ -10,7 +10,7 @@
 node@value			A double corresponding to the node's value
 }
 \description{
-Get value of target node
+Get value of target node. If the node is a leaf, then leaf_value is returned, otherwise the split value is returned.
 }
 \examples{
 get_value(node)
