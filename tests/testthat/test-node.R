@@ -33,9 +33,12 @@ test_that("Node getters and setters",	{
 			#	These nodes are leaves as of now
 			testthat::expect_true(identical(get_value(node),	0.5))
 			testthat::expect_true(identical(get_value(node1),	1.5))
+			set_value(node,	5)
+			testthat::expect_true(identical(get_value(node),	5))
 
 			node2	<-	Node(s_value	=	3,	leaf_value	=	7,		ROOT	=	FALSE)
 			node3	<-	Node(s_value	=	4,	leaf_value	=	3.5,	ROOT	=	FALSE)
+
 
 			set_left_child(node,	node2)
 			set_right_child(node,	node3)
@@ -50,4 +53,8 @@ test_that("Node getters and setters",	{
 			# node is not a leaf anymore, node1 is
 			testthat::expect_true(identical(get_value(node),	1))
 			testthat::expect_false(identical(get_value(node1),	2))
+
+			set_value(node,	10)
+			testthat::expect_identical(get_value(node),	10)
+
 })
