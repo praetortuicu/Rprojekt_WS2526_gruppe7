@@ -1,38 +1,58 @@
 library(shiny)
 
-m_offset <- c(0, 1.5)
-r_offset <- c(0.5, 1.5)
-l_offset <- c(-0.5, 1.5)
-
-lin_offset <- c(0, 0)
-
 ui <- fluidPage(
-  plotOutput("plot")
+  plotOutput(
+    "plot",
+    click = "plot_click",
+    hover = hoverOpts("plot_hover", delay = 0)
+  ),
+  verbatimTextOutput("info")
 )
 
-
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  point <- reactiveVal(c(5, 5))
+  dragging <- reactiveVal(FALSE)
+  
+  # Start / Stop dragging when clicking near the point
+  observeEvent(input$plot_click, {
+    
+    p <- point()
+    d <- sqrt((input$plot_click$x - p[1])^2 +
+                (input$plot_click$y - p[2])^2)
+    
+    if (d < 0.5) {
+      dragging(!dragging())   # toggle dragging
+    }
+  })
+  
+  # Move point while dragging
+  observe({
+    if (dragging() && !is.null(input$plot_hover)) {
+      point(c(input$plot_hover$x, input$plot_hover$y))
+    }
+  })
+  
   output$plot <- renderPlot({
     plot(0, 0,
-         type = "n",      # nichts zeichnen
-         xlim = c(-10, 10),
-         ylim = c(-10, 10),
-         xlab = "X",
-         ylab = "Y")
+         type = "n",
+         xlim = c(0, 10),
+         ylim = c(0, 10))
     
-    points(0, 0, col = "red", pch = 19, cex = 2, main = "Root")
-    points(-2, -4, col = "blue", pch = 19, cex = 2, main = "Child L")
-    points(2, -4, col = "blue", pch = 19, cex = 2, main = "Child R")
-    segments(0, 0, -2, -4, col = "blue", lwd = 2, main = "condition 1")
-    segments(0, 0, 2, -4, col = "blue", lwd = 2, main = "condition 2")
+    p <- point()
     
-    text(col = "red", x = 0, y = 0 + m_offset[2], labels = "Root", cex = 1.5)
-    text(col = "blue", x = -2 + l_offset[1], y = -4 + l_offset[2] , labels = "Child L", cex = 1.5)
-    text(col = "blue", x = 2 + r_offset[1], y = -4 + r_offset[2] , labels = "Child R", cex = 1.5)
-    text(col = "black", x = -1 + lin_offset[1], y = -2 + lin_offset[2] , labels = "condition 1", cex = 1)
-    text(col = "black", x = 1 + lin_offset[1], y = -2 + lin_offset[2] , labels = "condition 2", cex = 1)
+    points(p[1], p[2],
+           pch = 19,
+           col = if (dragging()) "blue" else "red",
+           cex = 2)
+  })
+  
+  output$info <- renderPrint({
+    list(
+      position = point(),
+      dragging = dragging()
+    )
   })
 }
 
-shinyApp(ui = ui, server = server)
-
+shinyApp(ui, server)
