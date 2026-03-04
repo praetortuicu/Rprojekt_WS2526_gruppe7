@@ -26,6 +26,8 @@ get_right_child		<-	S7::new_generic("get_right_child",	"node")
 set_left_child		<-	S7::new_generic("get_left_child",	"node")
 set_right_child		<-	S7::new_generic("set_right_child",	"node")
 
+route				<-	S7::new_generic("route",			"node")
+
 ###		GETTERS	###
 
 #'	Get value of target node. If the node is a leaf, then leaf_value is returned, otherwise the split value is returned.
@@ -143,3 +145,15 @@ S7::method(is_leaf,	Node)	<-	function(node)	{
 
 ###		DATA	###
 
+#'	Decision making method for routing children depending on the node
+#'
+#'	@name	Node@route
+#'	@param	node	Node Object
+#'	@param	obs		Numeric value vector
+#'	@return	void
+#'	@examples
+#'	route(node)
+S7::method(route,	Node)	<-	function(node,	obs)	{
+			if	(obs[node@ref$s_feature]	<=	node@ref$s_value)	{	return(get_left_child(node))	}
+			return(get_right_child(node))
+}

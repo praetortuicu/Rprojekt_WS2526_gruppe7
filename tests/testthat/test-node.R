@@ -58,3 +58,55 @@ test_that("Node getters and setters",	{
 			testthat::expect_identical(get_value(node),	10)
 
 })
+
+test_that("route returns left child when x[s_feature] <= s_value", {
+	root	<-	Node(ROOT = TRUE,	s_feature	=	1,	s_value	=	0.5)
+	left	<-	Node(leaf_value	=	1.0)
+	right	<-	Node(leaf_value	=	2.0)
+	set_left_child(root,	left)
+	set_right_child(root,	right)
+
+	x	<-	c(0.3,	0.9,	0.1)
+	testthat::expect_equal(route(root,	x),	left)
+})
+
+test_that("route returns right child when x[s_feature] > s_value",	{
+	root	<-	Node(ROOT	=	TRUE,	s_feature	=	1,	s_value	=	0.5)
+	left	<-	Node(leaf_value	=	1.0)
+	right	<-	Node(leaf_value	=	2.0)
+	set_left_child(root,	left)
+	set_right_child(root,	right)
+
+	x	<-	c(0.7,	0.9,	0.1)
+	testthat::expect_equal(route(root,	x),	right)
+})
+
+test_that("route handles boundary case x[s_feature] == s_value",	{
+	root	<-	Node(ROOT	=	TRUE,	s_feature	=	2,	s_value	=	0.5)
+	left	<-	Node(leaf_value	=	1.0)
+	right	<-	Node(leaf_value	=	2.0)
+	set_left_child(root,	left)
+	set_right_child(root,	right)
+
+	x	<-	c(0.3,	0.5,	0.1)
+	testthat::expect_equal(route(root,	x),	left)
+})
+
+test_that("route works on non-root inner node",	{
+	root	<-	Node(ROOT	=	TRUE,	s_feature	=	1,	s_value	=	0.5)
+	inner	<-	Node(s_feature	=	2,	s_value	=	0.3)
+	left	<-	Node(leaf_value	=	1.0)
+	right	<-	Node(leaf_value	=	2.0)
+	set_left_child(root,	inner)
+	set_left_child(inner,	left)
+	set_right_child(inner,	right)
+
+	x	<-	c(0.1,	0.5,	0.9)
+	testthat::expect_equal(route(inner,	x),	right)
+})
+
+test_that("route errors on a leaf node",	{
+	leaf	<-	Node(leaf_value	=	1.0)
+	x		<-	c(0.3,	0.5,	0.1)
+	testthat::expect_error(route(leaf,	x))
+})
