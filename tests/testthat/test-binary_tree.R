@@ -13,14 +13,14 @@ test_that("getters",	{
 			root	<-	Node(ROOT=TRUE)
 			tree1	<-	BinaryTree(root=root)
 			testthat::expect_false(is_empty(tree1))
-			testthat::expect_equal(get_depth(tree1),	1)
+			testthat::expect_equal(get_depth(tree1),	0)
 
-			node1	<-	Node(s_value=1,	l_value=0.0)
-			node2	<-	Node(s_value=2,	l_value=0.5)
-			node3	<-	Node(s_value=3,	l_value=7.0)
-			node4	<-	Node(s_value=4,	l_value=1.5)
-			node5	<-	Node(s_value=5,	l_value=9.0)
-			node6	<-	Node(s_value=6,	l_value=2.5)
+			node1	<-	Node(s_value=1,	leaf_value=0.0)
+			node2	<-	Node(s_value=2,	leaf_value=0.5)
+			node3	<-	Node(s_value=3,	leaf_value=7.0)
+			node4	<-	Node(s_value=4,	leaf_value=1.5)
+			node5	<-	Node(s_value=5,	leaf_value=9.0)
+			node6	<-	Node(s_value=6,	leaf_value=2.5)
 
 			set_left_child(root,	node1)
 			set_right_child(root,	node2)
@@ -31,10 +31,32 @@ test_that("getters",	{
 			set_left_child(node2,	node5)
 			set_right_child(node2,	node6)
 
-
 			testthat::expect_false(is_empty(tree1))
 			testthat::expect_equal(get_depth(tree1),	3)
+
 })
+
+test_that("children assignment",	{
+			root	<-	Node(ROOT=TRUE)
+			tree	<-	BinaryTree(root=root)
+
+			node1	<-	Node(s_value=1,	leaf_value=0.0)
+			node2	<-	Node(s_value=2,	leaf_value=0.5)
+			node3	<-	Node(s_value=3,	leaf_value=7.0)
+			node4	<-	Node(s_value=4,	leaf_value=1.5)
+			node5	<-	Node(s_value=5,	leaf_value=9.0)
+			node6	<-	Node(s_value=6,	leaf_value=2.5)
+
+			assign_left_child(tree,	root,	node1)
+			assign_right_child(tree,	root,	node2)
+
+			assign_left_child(tree,	node1,	node3)
+			assign_right_child(tree,	node1,	node4)
+
+			assign_left_child(tree,	node3,	node5)
+			assign_right_child(tree,	node3,	node6)
+})
+
 #	Prediction
 
 #	Prune
