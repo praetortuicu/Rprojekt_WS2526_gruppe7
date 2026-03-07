@@ -85,7 +85,7 @@ ui <- fluidPage(
   ),
   
   
-  # ---------- JAVASCRIPT CANVAS ----------
+  # ---------- JS CANVAS ----------
   tags$script(HTML("
   
 const canvas = document.getElementById('canvas1');
@@ -100,8 +100,6 @@ let startX;
 let startY;
 
 
-/* ---- STARTPOSITION (OBEN MITTIG) ---- */
-
 function setStartPosition(){
 
   const viewWidth = 800;
@@ -114,8 +112,6 @@ function setStartPosition(){
 
 setStartPosition();
 
-
-/* ---- ZEICHNEN ---- */
 
 function draw(){
 
@@ -145,8 +141,6 @@ function draw(){
 draw();
 
 
-/* ---- PAN ---- */
-
 canvas.addEventListener('mousedown', function(e){
 
   isDragging = true;
@@ -175,8 +169,6 @@ window.addEventListener('mousemove', function(e){
 
 });
 
-
-/* ---- ZOOM ---- */
 
 canvas.addEventListener('wheel', function(e){
 

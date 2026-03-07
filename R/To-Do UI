@@ -1,10 +1,7 @@
 To-Do: Ui
 
-- Frontend und global file anlegen
+- Node_UI wrapper-class schreiben in global
 
-- Grundfelder anlegen:
-
-- korrekte Daten im Backend verknüpfen:
-PlotNode implementiert node mit cords c(1,2) children(hoffentlich in node) draggable machen
+- Node-Logik mit Canvas verbinden (Konstanten, Startposition, automatischer Zoom, Text + Quellen)
 
 - Algorithmen als fuctionen die angwendet werden können/ R Objekte aus Fabrik
