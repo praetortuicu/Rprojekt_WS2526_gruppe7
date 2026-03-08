@@ -7,34 +7,13 @@ server <- function(input, output, session){
   db <- reactiveVal(
     data.frame(
       Entry_ID = c("A","B","C"),
-      
+      accepted = c(TRUE, FALSE, TRUE),
       stringsAsFactors = FALSE
     )
   )
   
   update_db <- function(new_db){
     db(new_db)
-  }
-  
-  # ---------- HELPER ----------
-  
-  generate_alpha_ids <- function(n){
-    ids <- character(n)
-    
-    for(i in 1:n){
-      x <- i
-      name <- ""
-      
-      while(x > 0){
-        x <- x - 1
-        name <- paste0(LETTERS[(x %% 26) + 1], name)
-        x <- x %/% 26
-      }
-      
-      ids[i] <- name
-    }
-    
-    ids
   }
   
   # ---------- REACTIVE DB ----------
@@ -98,6 +77,26 @@ server <- function(input, output, session){
     
   })
   
+  observeEvent(input$confirm_draw_tree,{
+    removeModal()
+    #use chosen algorithm
+    tree <- switch(
+      input$choose_algo,
+      "Greedy-Algorithm" = generate_greedy_tree(db()),
+      "Bagging" = generate_bagging_tree(db()),
+      "Random Forest" = generate_random_forest_tree(db()),
+      "Boosting" = generate_boosting_tree(db())
+    )
+    #computate tree layout
+    layout <- computate_node_layout(tree)
+    #send draw command to canvas with node positions and other info
+    session$sendCustomMessage(
+      draw_tree,
+      layout
+      )
+     
+  })
+  
   # ---------- ADD ENTRY ----------
   
   observeEvent(input$add_entry,{
@@ -150,7 +149,7 @@ server <- function(input, output, session){
         selectInput(
           "fill_option",
           "Choose how to fill the new column",
-          choices = c("NA values","Random values","Alphabetical IDs")
+          choices = c("NA values","Random values","Alphabetical IDs", "Boolean values")
         ),
         
         numericInput("min_random_value","Min Random",0),
@@ -186,7 +185,10 @@ server <- function(input, output, session){
         sample(input$min_random_value:input$max_random_value, n, replace=TRUE),
       
       "Alphabetical IDs" =
-        generate_alpha_ids(n)
+        generate_alpha_ids(n),
+      
+      "Boolean values" =
+        sample(c(TRUE, FALSE), n, replace=TRUE)
     )
     
     current_db[[col_name]] <- new_col
@@ -209,6 +211,8 @@ server <- function(input, output, session){
         
         lapply(names(db()), function(col){
           
+          if(col %in% c("Entry_ID","accepted")) return(NULL)
+          
           selectInput(
             paste0("fill_option_",col),
             paste("Fill column", col),
@@ -227,34 +231,40 @@ server <- function(input, output, session){
   })
   
   
-  observeEvent(input$confirm_generate_data,{
+observeEvent(input$confirm_generate_data,{
+  
+  n <- input$num_entries
+  cols <- names(db())
+  
+  new_df <- data.frame(matrix(nrow=n, ncol=length(cols)))
+  colnames(new_df) <- cols
+  
+  for(col in cols){
     
-    n <- input$num_entries
-    cols <- names(db())
-    
-    new_df <- data.frame(matrix(nrow=n, ncol=length(cols)))
-    colnames(new_df) <- cols
-    
-    for(col in cols){
-      
-      option <- input[[paste0("fill_option_",col)]]
-      
-      new_df[[col]] <- switch(
-        option,
-        
-        "NA values" = rep(NA,n),
-        
-        "Random values" = sample(1:100,n,replace=TRUE),
-        
-        "Alphabetical IDs" = generate_alpha_ids(n)
-      )
-      
+    if(col == "Entry_ID"){
+      new_df[[col]] <- generate_alpha_ids(n)
+      next
     }
     
-    update_db(new_df)
+    if(col == "accepted"){
+      new_df[[col]] <- sample(c(TRUE,FALSE), n, replace=TRUE)
+      next
+    }
     
-    removeModal()
+    option <- input[[paste0("fill_option_",col)]]
     
-  })
+    new_df[[col]] <- switch(
+      option,
+      "NA values" = rep(NA,n),
+      "Random values" = sample(1:100,n,replace=TRUE),
+      "Alphabetical IDs" = generate_alpha_ids(n)
+    )
+    
+  }
+  
+  update_db(new_df)
+  removeModal()
+  
+})
   
 }

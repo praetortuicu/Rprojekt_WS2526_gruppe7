@@ -86,8 +86,9 @@ ui <- fluidPage(
   
   
   # ---------- JS CANVAS ----------
+  # ---------- JS CANVAS ----------
   tags$script(HTML("
-  
+
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 
@@ -99,6 +100,7 @@ let isDragging = false;
 let startX;
 let startY;
 
+let treeNodes = [];
 
 function setStartPosition(){
 
@@ -112,7 +114,6 @@ function setStartPosition(){
 
 setStartPosition();
 
-
 function draw(){
 
   ctx.setTransform(1,0,0,1,0,0);
@@ -120,26 +121,67 @@ function draw(){
 
   ctx.setTransform(scale,0,0,scale,originX,originY);
 
+  drawGrid();
+  drawTree();
+
+}
+
+function drawGrid(){
+
   ctx.strokeStyle = '#cccccc';
 
-  for(let x=0;x<6000;x+=200){
+  for(let x=0; x<canvas.width; x+=200){
     ctx.beginPath();
     ctx.moveTo(x,0);
-    ctx.lineTo(x,4000);
+    ctx.lineTo(x,canvas.height);
     ctx.stroke();
   }
 
-  for(let y=0;y<4000;y+=200){
+  for(let y=0; y<canvas.height; y+=200){
     ctx.beginPath();
     ctx.moveTo(0,y);
-    ctx.lineTo(6000,y);
+    ctx.lineTo(canvas.width,y);
     ctx.stroke();
   }
 
 }
 
-draw();
+function drawTree(){
 
+  if(treeNodes.length === 0) return;
+
+  ctx.strokeStyle = '#000000';
+  ctx.fillStyle = '#ffffff';
+
+  treeNodes.forEach(node => {
+
+    if(node.parent_id !== null){
+
+      const parent = treeNodes.find(n => n.node_id === node.parent_id);
+
+      if(parent){
+        ctx.beginPath();
+        ctx.moveTo(parent.x, parent.y);
+        ctx.lineTo(node.x, node.y);
+        ctx.stroke();
+      }
+
+    }
+
+  });
+
+  treeNodes.forEach(node => {
+
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+  });
+
+}
+
+draw();
 
 canvas.addEventListener('mousedown', function(e){
 
@@ -169,7 +211,6 @@ window.addEventListener('mousemove', function(e){
 
 });
 
-
 canvas.addEventListener('wheel', function(e){
 
   e.preventDefault();
@@ -188,5 +229,19 @@ canvas.addEventListener('wheel', function(e){
 
 });
 
-  "))
+Shiny.addCustomMessageHandler('draw_tree', function(data){
+
+  treeNodes = data.nodes;
+
+  canvas.width = data.width;
+  canvas.height = data.height;
+
+  scale = 1;
+  setStartPosition();
+
+  draw();
+
+});
+
+"))
 )
