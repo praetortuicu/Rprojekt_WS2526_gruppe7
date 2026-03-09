@@ -65,7 +65,7 @@ computate_node_layout <- function(BinaryTree) {
     
     if(i == d) {
       #assign x-coordinates to leafs starting from left
-      layer$x <- seq(node_radius, canvas.width - node_radius, length.out=nrow(layer))
+      layer$x <- seq(node_radius, canvas_width - node_radius, length.out=nrow(layer))
     } else {
       #assign x-coordinates to non-leafs based on mean of child nodes
       for(j in 1:nrow(layer)) {
@@ -88,11 +88,34 @@ computate_node_layout <- function(BinaryTree) {
     nodes$x[nodes$node_id %in% layer$node_id] <- layer$x
     nodes$y[nodes$node_id %in% layer$node_id] <- layer$y
     
-    ret <-list(
-      nodes = nodes,
-      canvas_width = canvas_width,
-      canvas_height = canvas_height
-    )
-    return (ret)
   }
+  ret <-list(
+    nodes = nodes,
+    canvas_width = canvas_width,
+    canvas_height = canvas_height
+  )
+  return (ret)
+}
+
+#TEMP - test
+generate_test_tree <- function(db) {
+  tree <- BinaryTree()
+  
+  # Manually create a simple binary tree structure
+  root <- Node(node_id = "A", depth = 0)
+  left_child <- Node(node_id = "B", depth = 1)
+  right_child <- Node(node_id = "C", depth = 1)
+  left_left_child <- Node(node_id = "D", depth = 2)
+  left_right_child <- Node(node_id = "E", depth = 2)
+  
+  # Build the tree
+  root$set_left_child(left_child)
+  root$set_right_child(right_child)
+  left_child$set_left_child(left_left_child)
+  left_child$set_right_child(left_right_child)
+  
+  # Add nodes to the tree's reference list
+  tree@ref$nodes <- rbind(tree@ref$nodes, data.frame(node_id = c("A", "B", "C", "D", "E"), depth = c(0, 1, 1, 2, 2)))
+  
+  return(tree)
 }

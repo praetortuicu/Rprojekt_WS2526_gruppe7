@@ -1,4 +1,5 @@
 library(shiny)
+library(tictoc)
 
 server <- function(input, output, session){
   
@@ -32,16 +33,17 @@ server <- function(input, output, session){
     paste("Selected Algorithm:", input$choose_algo)
   })
   
+  depth <- reactiveVal(0)
   output$depth <- renderText({
-    paste("Depth:", 4)
+    paste("Depth:", depth())
   })
-  
+  timer <- reactiveVal(0)
   output$time <- renderText({
-    paste("Time:", "0.01s")
+    paste("Time:", timer(), "seconds")
   })
-  
+  num_leafs <- reactiveVal(0)
   output$leafs <- renderText({
-    paste("Leafs:", 12)
+    paste("Leafs:", num_leafs())
   })
   
   # ---------- DRAW TREE ----------
@@ -80,21 +82,39 @@ server <- function(input, output, session){
   observeEvent(input$confirm_draw_tree,{
     removeModal()
     #use chosen algorithm
+    #start timer
+    tic()
     tree <- switch(
       input$choose_algo,
       "Greedy-Algorithm" = generate_greedy_tree(db()),
       "Bagging" = generate_bagging_tree(db()),
       "Random Forest" = generate_random_forest_tree(db()),
-      "Boosting" = generate_boosting_tree(db())
+      "Boosting" = generate_boosting_tree(db()),
+      "Test" = generate_test_tree(db())#TEMP
     )
+    #end timer
+    t <- toc(quiet = TRUE)
+    timer(t$toc - t$tic)
     #computate tree layout
     layout <- computate_node_layout(tree)
+    nodes_df <- data.frame(
+      id = layout$nodes$node_id,
+      parent_id = layout$nodes$parent_id,
+      x = layout$nodes$x,
+      y = layout$nodes$y,
+      depth = layout$nodes$depth,
+      is_leaf = layout$nodes$is_leaf
+    )
     #send draw command to canvas with node positions and other info
     session$sendCustomMessage(
-      draw_tree,
-      layout
+      "draw_tree",
+      list(
+        nodes = nodes_df,
+        width = layout$canvas_width,
+        height = layout$canvas_height
       )
-     
+    )
+    
   })
   
   # ---------- ADD ENTRY ----------

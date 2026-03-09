@@ -43,7 +43,7 @@ ui <- fluidPage(
       selectInput(
         "choose_algo",
         "Choose Algorithm",
-        choices = c("Choose Algorithm", "Greedy-Algorithm", "Bagging", "Random Forest", "Boosting"),
+        choices = c("Choose Algorithm", "Greedy-Algorithm", "Bagging", "Random Forest", "Boosting", "Test"),
         width = "100%",
       ),
       
@@ -84,164 +84,83 @@ ui <- fluidPage(
     )
   ),
   
-  
-  # ---------- JS CANVAS ----------
+
   # ---------- JS CANVAS ----------
   tags$script(HTML("
+Shiny.addCustomMessageHandler('draw_tree', function(data){
 
-const canvas = document.getElementById('canvas1');
-const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('tree_canvas');
+  const ctx = canvas.getContext('2d');
 
-let scale = 1;
-let originX = 0;
-let originY = 0;
+  canvas.width = data.width;
+  canvas.height = data.height;
 
-let isDragging = false;
-let startX;
-let startY;
+  const nodes = data.nodes;
+  const radius = 20;
 
-let treeNodes = [];
-
-function setStartPosition(){
-
-  const viewWidth = 800;
-  const canvasWidth = canvas.width;
-
-  originX = (viewWidth - canvasWidth) / 2;
-  originY = 0;
-
-}
-
-setStartPosition();
-
-function draw(){
-
-  ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.setTransform(scale,0,0,scale,originX,originY);
+  // -------- Build lookup table --------
+  const nodeMap = {};
+  nodes.forEach(n => {
+    nodeMap[n.id] = n;
+  });
 
-  drawGrid();
-  drawTree();
+  // -------- Draw Edges --------
+  nodes.forEach(node => {
 
-}
+    if(node.parent_id && nodeMap[node.parent_id]){
 
-function drawGrid(){
+      const parent = nodeMap[node.parent_id];
 
-  ctx.strokeStyle = '#cccccc';
-
-  for(let x=0; x<canvas.width; x+=200){
-    ctx.beginPath();
-    ctx.moveTo(x,0);
-    ctx.lineTo(x,canvas.height);
-    ctx.stroke();
-  }
-
-  for(let y=0; y<canvas.height; y+=200){
-    ctx.beginPath();
-    ctx.moveTo(0,y);
-    ctx.lineTo(canvas.width,y);
-    ctx.stroke();
-  }
-
-}
-
-function drawTree(){
-
-  if(treeNodes.length === 0) return;
-
-  ctx.strokeStyle = '#000000';
-  ctx.fillStyle = '#ffffff';
-
-  treeNodes.forEach(node => {
-
-    if(node.parent_id !== null){
-
-      const parent = treeNodes.find(n => n.node_id === node.parent_id);
-
-      if(parent){
-        ctx.beginPath();
-        ctx.moveTo(parent.x, parent.y);
-        ctx.lineTo(node.x, node.y);
-        ctx.stroke();
-      }
+      ctx.beginPath();
+      ctx.moveTo(parent.x, parent.y);
+      ctx.lineTo(node.x, node.y);
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
     }
 
   });
 
-  treeNodes.forEach(node => {
+  // -------- Draw Nodes --------
+  nodes.forEach(node => {
+
+    let color;
+
+    if(node.depth === 0){
+      color = '#FFD700';   // root yellow
+    }
+    else if(node.is_leaf){
+      color = '#4CAF50';   // leaf green
+    }
+    else{
+      color = '#4A90E2';   // internal node blue
+    }
 
     ctx.beginPath();
-    ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+    ctx.arc(node.x, node.y, radius, 0, 2*Math.PI);
+    ctx.fillStyle = color;
     ctx.fill();
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
     ctx.stroke();
 
   });
 
-}
+  // -------- Draw Node IDs --------
+  ctx.fillStyle = 'black';
+  ctx.font = '14px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
-draw();
+  nodes.forEach(node => {
 
-canvas.addEventListener('mousedown', function(e){
+    ctx.fillText(node.id, node.x, node.y);
 
-  isDragging = true;
-  startX = e.clientX;
-  startY = e.clientY;
-
-});
-
-window.addEventListener('mouseup', function(){
-
-  isDragging = false;
+  });
 
 });
-
-window.addEventListener('mousemove', function(e){
-
-  if(!isDragging) return;
-
-  originX += (e.clientX - startX);
-  originY += (e.clientY - startY);
-
-  startX = e.clientX;
-  startY = e.clientY;
-
-  draw();
-
-});
-
-canvas.addEventListener('wheel', function(e){
-
-  e.preventDefault();
-
-  const zoom = e.deltaY < 0 ? 1.1 : 0.9;
-
-  const mouseX = e.offsetX;
-  const mouseY = e.offsetY;
-
-  originX = mouseX - zoom * (mouseX - originX);
-  originY = mouseY - zoom * (mouseY - originY);
-
-  scale *= zoom;
-
-  draw();
-
-});
-
-Shiny.addCustomMessageHandler('draw_tree', function(data){
-
-  treeNodes = data.nodes;
-
-  canvas.width = data.width;
-  canvas.height = data.height;
-
-  scale = 1;
-  setStartPosition();
-
-  draw();
-
-});
-
 "))
 )
