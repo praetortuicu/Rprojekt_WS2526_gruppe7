@@ -87,80 +87,319 @@ ui <- fluidPage(
 
   # ---------- JS CANVAS ----------
   tags$script(HTML("
-Shiny.addCustomMessageHandler('draw_tree', function(data){
 
-  const canvas = document.getElementById('tree_canvas');
-  const ctx = canvas.getContext('2d');
+const canvas = document.getElementById('canvas1');
+const ctx = canvas.getContext('2d');
 
-  canvas.width = data.width;
-  canvas.height = data.height;
+const NODE_RADIUS = 20;
 
-  const nodes = data.nodes;
-  const radius = 20;
+let nodes = [];
 
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+let dragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+let hoveredNode = null;
+
+
+
+// ---------- WORLD → SCREEN ----------
+
+function worldToScreen(x,y){
+
+  return {
+    x: x * scale + offsetX,
+    y: y * scale + offsetY
+  }
+
+}
+
+function screenToWorld(x,y){
+
+  return {
+    x: (x - offsetX) / scale,
+    y: (y - offsetY) / scale
+  }
+
+}
+
+
+
+// ---------- DRAW ----------
+
+function draw(){
+
+  ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // -------- Build lookup table --------
-  const nodeMap = {};
-  nodes.forEach(n => {
-    nodeMap[n.id] = n;
-  });
+  drawEdges();
+  drawNodes();
+  drawTooltip();
 
-  // -------- Draw Edges --------
+}
+
+
+
+// ---------- EDGES ----------
+
+function drawEdges(){
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#444';
+
   nodes.forEach(node => {
 
-    if(node.parent_id && nodeMap[node.parent_id]){
+    if(node.parent_id === null) return;
 
-      const parent = nodeMap[node.parent_id];
+    const parent = nodes.find(n => n.id === node.parent_id);
 
-      ctx.beginPath();
-      ctx.moveTo(parent.x, parent.y);
-      ctx.lineTo(node.x, node.y);
-      ctx.strokeStyle = '#444';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+    if(!parent) return;
 
-    }
-
-  });
-
-  // -------- Draw Nodes --------
-  nodes.forEach(node => {
-
-    let color;
-
-    if(node.depth === 0){
-      color = '#FFD700';   // root yellow
-    }
-    else if(node.is_leaf){
-      color = '#4CAF50';   // leaf green
-    }
-    else{
-      color = '#4A90E2';   // internal node blue
-    }
+    const p = worldToScreen(parent.x,parent.y);
+    const c = worldToScreen(node.x,node.y);
 
     ctx.beginPath();
-    ctx.arc(node.x, node.y, radius, 0, 2*Math.PI);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
+    ctx.moveTo(p.x,p.y);
+    ctx.lineTo(c.x,c.y);
     ctx.stroke();
 
   });
 
-  // -------- Draw Node IDs --------
-  ctx.fillStyle = 'black';
-  ctx.font = '14px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+}
+
+
+
+// ---------- NODES ----------
+
+function drawNodes(){
 
   nodes.forEach(node => {
 
-    ctx.fillText(node.id, node.x, node.y);
+    const p = worldToScreen(node.x,node.y);
+
+    let color;
+
+    if(node.depth === 0){
+      color = '#e53935';        // ROOT
+    }
+    else if(node.is_leaf){
+      color = '#43a047';        // LEAF
+    }
+    else{
+      color = '#1e88e5';        // INTERNAL
+    }
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#222';
+
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,NODE_RADIUS*scale,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+
+
+    // label
+
+    ctx.fillStyle = '#000';
+    ctx.font = (12*scale)+'px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.fillText(node.id,p.x,p.y);
 
   });
 
+}
+
+
+
+// ---------- TOOLTIP ----------
+
+function drawTooltip(){
+
+  if(!hoveredNode) return;
+
+  const text = 
+    'Node ' + hoveredNode.id +
+    ' | depth: ' + hoveredNode.depth +
+    ' | ' + (hoveredNode.depth===0 ? 'ROOT' :
+      (hoveredNode.is_leaf ? 'LEAF' : 'INTERNAL'));
+
+  ctx.setTransform(1,0,0,1,0,0);
+
+  ctx.font = '14px Arial';
+
+  const padding = 8;
+  const width = ctx.measureText(text).width + padding*2;
+  const height = 24;
+
+  const x = 20;
+  const y = 20;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillRect(x,y,width,height);
+
+  ctx.strokeStyle = '#333';
+  ctx.strokeRect(x,y,width,height);
+
+  ctx.fillStyle = '#000';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillText(text,x+padding,y+height/2);
+
+}
+
+
+
+// ---------- HOVER DETECTION ----------
+
+canvas.addEventListener('mousemove',function(e){
+
+  const pos = screenToWorld(e.offsetX,e.offsetY);
+
+  hoveredNode = null;
+
+  for(const node of nodes){
+
+    const dx = pos.x - node.x;
+    const dy = pos.y - node.y;
+
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if(dist < NODE_RADIUS){
+
+      hoveredNode = node;
+      break;
+
+    }
+
+  }
+
+  draw();
+
 });
+
+
+
+// ---------- PAN ----------
+
+canvas.addEventListener('mousedown',function(e){
+
+  dragging = true;
+
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+
+});
+
+window.addEventListener('mouseup',function(){
+
+  dragging = false;
+
+});
+
+window.addEventListener('mousemove',function(e){
+
+  if(!dragging) return;
+
+  offsetX += e.clientX - dragStartX;
+  offsetY += e.clientY - dragStartY;
+
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+
+  draw();
+
+});
+
+
+
+// ---------- ZOOM ----------
+
+canvas.addEventListener('wheel',function(e){
+
+  e.preventDefault();
+
+  const zoom = e.deltaY < 0 ? 1.1 : 0.9;
+
+  const mouse = screenToWorld(e.offsetX,e.offsetY);
+
+  scale *= zoom;
+
+  offsetX = e.offsetX - mouse.x * scale;
+  offsetY = e.offsetY - mouse.y * scale;
+
+  draw();
+
+});
+
+
+
+// ---------- CAMERA ----------
+
+function centerOnRoot(){
+
+  const root = nodes.find(n => n.depth === 0);
+
+  if(!root) return;
+
+  scale = 1;
+
+  offsetX = canvas.width/2 - root.x;
+  offsetY = canvas.height/2 - root.y;
+
+}
+
+
+
+// ---------- RECEIVE DATA FROM SHINY ----------
+
+function dfToRows(df){
+
+  if(Array.isArray(df)) return df;
+
+  const rows = [];
+  const n = df.id.length;
+
+  for(let i = 0; i < n; i++){
+
+    rows.push({
+      id: df.id[i],
+      parent_id: df.parent_id[i],
+      x: df.x[i],
+      y: df.y[i],
+      depth: df.depth[i],
+      is_leaf: df.is_leaf[i]
+    });
+
+  }
+
+  return rows;
+
+}
+
+Shiny.addCustomMessageHandler('draw_tree',function(data){
+
+  nodes = dfToRows(data.nodes);
+
+  console.log('tree received', data);
+
+  canvas.width = data.width;
+  canvas.height = data.height;
+
+  centerOnRoot();
+
+  draw();
+
+});
+
+
+
+draw();
+
 "))
 )

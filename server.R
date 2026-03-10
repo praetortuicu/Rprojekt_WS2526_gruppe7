@@ -1,5 +1,6 @@
 library(shiny)
 library(tictoc)
+library(jsonlite)
 
 server <- function(input, output, session){
   
@@ -90,11 +91,15 @@ server <- function(input, output, session){
       "Bagging" = generate_bagging_tree(db()),
       "Random Forest" = generate_random_forest_tree(db()),
       "Boosting" = generate_boosting_tree(db()),
-      "Test" = generate_test_tree(db())#TEMP
+      "Test" = generate_test_tree()#TEMP
     )
     #end timer
     t <- toc(quiet = TRUE)
     timer(t$toc - t$tic)
+    
+    depth(tree@ref$depth)
+    num_leafs(tree@ref$n_leaves)
+    
     #computate tree layout
     layout <- computate_node_layout(tree)
     nodes_df <- data.frame(
@@ -106,11 +111,15 @@ server <- function(input, output, session){
       is_leaf = layout$nodes$is_leaf
     )
     #send draw command to canvas with node positions and other info
+    print(layout$nodes)
+    print(layout$canvas_width)
+    print(layout$canvas_height)
+    
     session$sendCustomMessage(
       "draw_tree",
       list(
         nodes = nodes_df,
-        width = layout$canvas_width,
+        width = ifelse(is.null(layout$canvas_width), 800, layout$canvas_width),
         height = layout$canvas_height
       )
     )
