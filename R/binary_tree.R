@@ -43,10 +43,10 @@ S7::method(get_depth,	BinaryTree)	<-	function(tree)	{
 #'	Verify whether tree is empty
 #'
 #'	@name	BinaryTree@is_empty
-#'	@param	tree	BinaryTree object
-#'	@return	True/False
-#'	@examples
-#'	is_empty(tree)
+#' @param	tree	BinaryTree object
+#' @return	True/False
+#' @examples
+#' is_empty(tree)
 S7::method(is_empty,	BinaryTree)	<-	function(tree)	{
 			if	(identical(tree@ref$root,	NULL))	{
 			return(TRUE)
@@ -56,13 +56,13 @@ S7::method(is_empty,	BinaryTree)	<-	function(tree)	{
 
 ###		DATA	###
 
-#'	Increment tree depth
+#' Increment tree depth
 #'
-#'	@name	BinaryTree@update_depth
-#'	@param	tree	A BinaryTree object
-#'	@return	void
-#'	@examples
-#'	update_depth(tree)
+#' @name	BinaryTree@update_depth
+#' @param	tree	A BinaryTree object
+#' @return	void
+#' @examples
+#' update_depth(tree)
 S7::method(update_depth,	BinaryTree)	<-	function(tree)	{
 			tree@ref$depth	<-	tree@ref$depth	+	1
 }
@@ -103,9 +103,9 @@ S7::method(assign_left_child,	BinaryTree)	<-	function(tree,	parent,	child)	{
 #'	Assign right child
 #'
 #'	@name	BinaryTree@assign_right_child
-#'	@param	tree	A BinaryTree object
-#'	@param	parent	A Node object
-#'	@param	child	A Node object
+#'	@param	tree    A BinaryTree object
+#'	@param	parent  A Node object
+#'	@param	child   A Node object
 #'	@return	void
 #'	@examples
 #'	assign_right_child(tree,	parent,	child)
