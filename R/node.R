@@ -136,10 +136,7 @@ S7::method(is_root,	Node)	<-	function(node)	{
 #'	@examples
 #'	is_leaf(node)
 S7::method(is_leaf,	Node)	<-	function(node)	{
-			if	(node@ROOT)	{	return(FALSE)	}
-			else	{
-				return(is.null(node@ref$left_node)	&&	is.null(node@ref$right_node))
-			}
+			return(is.null(node@ref$left_node)	&&	is.null(node@ref$right_node))
 }
 
 

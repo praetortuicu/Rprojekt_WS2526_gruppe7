@@ -8,7 +8,7 @@ test_that("Node initialization",	{
 			testthat::expect_true(is_root(root))
 			testthat::expect_false(is_root(node))
 
-			testthat::expect_false(is_leaf(root))
+			testthat::expect_true(is_leaf(root))
 			testthat::expect_true(is_leaf(node))
 })
 
