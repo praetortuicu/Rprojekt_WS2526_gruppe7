@@ -19,3 +19,4 @@ Config/testthat/edition: 3
 Collate: 
     'binary_tree.R'
     'node.R'
+	'cart.R'

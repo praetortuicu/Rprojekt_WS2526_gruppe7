@@ -14,8 +14,10 @@ BinaryTree	<-	S7::new_class("BinaryTree",
 ###		GENERICS	###
 is_empty			<-	S7::new_generic("is_empty",					"tree")
 get_depth			<-	S7::new_generic("get_depth",				"tree")
+
 assign_left_child	<-	S7::new_generic("assign_left_child",		"tree")
 assign_right_child	<-	S7::new_generic("assign_right_child",		"tree")
+
 count_leaves		<-	S7::new_generic("count_leaves",				"tree")
 predict_tree		<-	S7::new_generic("predict_tree",				"tree")
 prune				<-	S7::new_generic("prune",					"tree")
@@ -28,17 +30,16 @@ prune				<-	S7::new_generic("prune",					"tree")
 #'	@return	depth	Integer value
 #'	@examples
 #'	get_depth(tree)
-S7::method(get_depth, BinaryTree) <- function(tree) {
-	if (is_empty(tree)) return(0L)
-    node_depth <- function(node) {
-        if (is_leaf(node) || is_root(node) && 
-            is.null(node@ref$left_node)) return(0L)
-        1L + max(node_depth(get_left_child(node)),
-                 node_depth(get_right_child(node)))
-    }
-    node_depth(tree@ref$root)
-
+S7::method(get_depth,	BinaryTree)	<-	function(tree)	{
+	if	(is_empty(tree))	return(0L)
+	node_depth	<-	function(node)	{
+		if	(is_leaf(node)	||	is_root(node)	&&	is.null(node@ref$left_node))	{	return(0L)	}
+		1L	+	max(node_depth(get_left_child(node)),
+				node_depth(get_right_child(node)))
+	}
+	node_depth(tree@ref$root)
 }
+
 ###		SETTERS		###
 
 ###		VALIDATORS	###
