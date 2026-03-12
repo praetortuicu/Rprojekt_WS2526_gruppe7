@@ -23,7 +23,7 @@ set_value			<-	S7::new_generic("set_value",	"node")
 
 get_left_child		<-	S7::new_generic("get_left_child",	"node")
 get_right_child		<-	S7::new_generic("get_right_child",	"node")
-set_left_child		<-	S7::new_generic("get_left_child",	"node")
+set_left_child		<-	S7::new_generic("set_left_child",	"node")
 set_right_child		<-	S7::new_generic("set_right_child",	"node")
 
 route				<-	S7::new_generic("route",			"node")
@@ -136,10 +136,7 @@ S7::method(is_root,	Node)	<-	function(node)	{
 #'	@examples
 #'	is_leaf(node)
 S7::method(is_leaf,	Node)	<-	function(node)	{
-			if	(node@ROOT)	{	return(FALSE)	}
-			else	{
-				return(is.null(node@ref$left_node)	&&	is.null(node@ref$right_node))
-			}
+			return(is.null(node@ref$left_node)	&&	is.null(node@ref$right_node))
 }
 
 
