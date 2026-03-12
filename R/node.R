@@ -23,7 +23,7 @@ set_value			<-	S7::new_generic("set_value",	"node")
 
 get_left_child		<-	S7::new_generic("get_left_child",	"node")
 get_right_child		<-	S7::new_generic("get_right_child",	"node")
-set_left_child		<-	S7::new_generic("get_left_child",	"node")
+set_left_child		<-	S7::new_generic("set_left_child",	"node")
 set_right_child		<-	S7::new_generic("set_right_child",	"node")
 
 route				<-	S7::new_generic("route",			"node")
