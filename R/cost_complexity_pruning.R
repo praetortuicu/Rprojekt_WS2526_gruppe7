@@ -42,6 +42,7 @@ S7::method(get_weakest_link, BinaryTree) <- function(tree, X, y) {
   # TODO
 }
 
+# THIS HAS BEEN ADDED TO THEO'S CODEBASE
 #' Prune a node by collapsing its subtree into a leaf
 #'
 #' @name BinaryTree@prune_node
