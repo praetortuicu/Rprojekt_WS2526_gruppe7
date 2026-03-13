@@ -15,7 +15,7 @@ cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "tree")
 # Count leaves in subtree rooted at given node
 count_subtree_leaves <- function(node) {
   if (is_leaf(node)) return(1L)
-  count_subtree_leaves(get_left_child(node)) + count_subtree_leaves(get_right_child(node))
+  return(count_subtree_leaves(get_left_child(node)) + count_subtree_leaves(get_right_child(node)))
 }
 
 # Compute the error R(t) if subtree was replaced by single leaf
@@ -24,8 +24,10 @@ compute_node_error <- function(node, X, y) {
 }
 
 # Compute the subtree error R(T_t)
-compute_subtree_error <- function(node, X, y) {
-  # TODO
+# Sum of errors of leaves
+sum_leaf_errors <- function(node, X, y) {
+  if (is_leaf(node)) return(compute_node_error(node, X, y))
+  return(sum_leaf_errors(get_left_child(node), X, y) + sum_leaf_errors(get_right_child(node), X, y))
 }
 
 # Get internal nodes as list (Helper for finding weakest link)
@@ -69,7 +71,7 @@ S7::method(find_weakest_link, BinaryTree) <- function(tree, X, y) {
   # iterate over internal nodes
   for (current_node in nodes) {
     node_error <- compute_node_error(current_node, X, y)
-    subtree_error <- compute_subtree_error(current_node, X, y)
+    subtree_error <- sum_leaf_errors(current_node, X, y)
     num_leaves <- count_subtree_leaves(current_node)
     cost_complexity_ratio <- (node_error - subtree_error) / (num_leaves - 1L)
     # track the minimum and store the argmin
