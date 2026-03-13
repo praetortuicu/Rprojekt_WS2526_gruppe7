@@ -47,7 +47,7 @@ compute_leaf_prediction <- function(values, type) {
 #' @param type Tree type ("regression" or "classification")
 #'
 #' @return Numeric loss value
-#' @eaxmples
+#' @examples
 #' compute_leaf_loss(y, mean(y), "regression")
 compute_leaf_loss <- function(values, prediction, type) {
   if (length(values) == 0) return(0)
@@ -136,7 +136,7 @@ compute_collapsed_error <- function(node, root, X, y, type) {
 #' @param type Tree type ("regression" or "classification")
 #'
 #' @return Numeric error value
-#' @eaxmples
+#' @examples
 #' compute_collapsed_error(node, root, X, y, type)
 compute_subtree_error <- function(node, root, X, y, type) {
   if (is_leaf(node)) return(compute_collapsed_error(node, root, X, y, type))
@@ -186,6 +186,7 @@ get_internal_nodes <- function (node, nodes = list()) {
 #' @return Numeric cost-complexity ratio
 #'
 #' @examples
+#' compute_cost_complexity_ratio(node, cart@ref$root, X, y, "regression")
 compute_cost_complexity_ratio <- function(node, root, X, y, type) {
   R_t   <- compute_collapsed_error(node, root, X, y, type)
   R_T_t <- compute_subtree_error(node,   root, X, y, type)
