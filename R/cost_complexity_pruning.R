@@ -4,7 +4,6 @@
 # TODO Documentation
 
 ###     GENERICS      ###
-compute_subtree_error     <- S7::new_generic("compute_subtree_error",     "tree")
 find_weakest_link      <- S7::new_generic("find_weakest_link",      "tree")
 cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "tree")
 
@@ -87,10 +86,12 @@ get_internal_nodes <- function (node, nodes = list()) {
 # - R(t) error if the subtree rooted at t gets replaced by leaf (make function for this)
 # - R(T_t) total error in the node's subtree (make function for this)
 # - #T_t number of leaves in the node's subtree (make function for this)
-compute_cost_complexity_ratio <- function(node, X, y) {
-  # TODO 
+compute_cost_complexity_ratio <- function(node, root, X, y) {
+  R_t   <- compute_collapsed_error(node, root, X, y)
+  R_T_t <- compute_subtree_error(node,   root, X, y)
+  leaves <- count_subtree_leaves(node)
+  return((R_t - R_T_t) / (leaves - 1L))
 }
-
 
 ###     METHODS     ###
 
@@ -101,24 +102,23 @@ S7::method(find_weakest_link, BinaryTree) <- function(tree, X, y) {
   nodes <- get_internal_nodes(tree@ref$root)
   min_cost_complexity_ratio <- Inf
   weakest_link <- NULL
-  # iterate over internal nodes
+ 
+  # Iterate over each internal node
   for (current_node in nodes) {
-    node_error <- compute_collapsed_error(current_node, X, y)
-    subtree_error <- compute_subtree_error(current_node, X, y)
-    num_leaves <- count_subtree_leaves(current_node)
-    cost_complexity_ratio <- (node_error - subtree_error) / (num_leaves - 1L)
-    # track the minimum and store the argmin
-    if (cost_complexity_ratio < min_cost_complexity_ratio) {
-      min_cost_complexity_ratio <- cost_complexity_ratio
-      weakest_link <- current_node
+    # Track minimum cost_complexity_ratio
+    ratio <- compute_cost_complexity_ratio(current_node, tree@ref$root, X, y)
+    if (ratio < min_cost_complexity_ratio) {
+      min_cost_complexity_ratio <- ratio
+      weakest_link              <- current_node
     }
   }
-
+ 
   return(list(
-    node = weakest_link,
+    node     = weakest_link,
     cc_ratio = min_cost_complexity_ratio
   ))
 }
+ 
 
 # Cost complexity pruning: the whole shabang
 # TODO: 
