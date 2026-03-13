@@ -1,30 +1,53 @@
 # cost_complexity_pruning.R
 
-# TODO Check safety
-# TODO Documentation
-
 ###     GENERICS      ###
-find_weakest_link      <- S7::new_generic("find_weakest_link",      "cart")
+
+find_weakest_link <- S7::new_generic("find_weakest_link", "cart")
 cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "cart")
 
 ###     HELPERS     ###
 
-# Count leaves in subtree rooted at given node
+#' Count the number of leaves in a subtree rooted at given node
+#'
+#' @param node A Node object
+#' @return Integer number of leaves
+#' @examples
+#' count_subtree_leaves(node)
 count_subtree_leaves <- function(node) {
   if (is_leaf(node)) return(1L)
   return(count_subtree_leaves(get_left_child(node)) + count_subtree_leaves(get_right_child(node)))
 }
 
-# Build a leaf prediction from the target values for the requested task
+#' Compute a leaf prediction from target values
+#'
+#' regression: mean
+#' classification: majority class
+#'
+#' @param values Numeric vector of response values
+#' @param type "regression" or "classification"
+#'
+#' @return Numeric predicted leaf value.
+#' @examples
+#' compute_leaf_prediction(y, "regression")
 compute_leaf_prediction <- function(values, type) {
   if (type == "classification") {
     return(as.integer(which.max(tabulate(values))))
   }
-
   mean(values)
 }
 
-# Loss for a leaf given its prediction
+#' Compute loss for a leaf prediction
+#'
+#' regression: squared error loss
+#' classification: misclassification count
+#'
+#' @param values True response values
+#' @param prediction Leaf prediction value
+#' @param type Tree type ("regression" or "classification")
+#'
+#' @return Numeric loss value
+#' @eaxmples
+#' compute_leaf_loss(y, mean(y), "regression")
 compute_leaf_loss <- function(values, prediction, type) {
   if (length(values) == 0) return(0)
 
@@ -35,9 +58,20 @@ compute_leaf_loss <- function(values, prediction, type) {
   sum((values - prediction)^2)
 }
 
-# Helper function for compute_collapsed_error
-# Gets the indeces of the data rows that reach a specific node
-# This is for calculating the mean value to collapse a subtree
+#' Find indices of data rows that reach a node given
+#'
+#' Goes dwon the tree from the root and returns the indices of the
+#' data rows that would reach the specified node
+#'
+#' @param root Root of the tree
+#' @param node Target node
+#' @param X Data matrix
+#' @param indices Unfiltered row indices
+#'
+#' @return Integer vector of observation indices.
+#'
+#' @examples
+#' get_node_indices(root, node, X)
 get_node_indices <- function(root, node, X, indices = 1:nrow(X)) {
   # Start with all indexes and search for the node, in each iteration
   # we filter the indexes by the ones who actually go to the node
@@ -67,10 +101,18 @@ get_node_indices <- function(root, node, X, indices = 1:nrow(X)) {
   return(get_node_indices(get_right_child(root), node, X, right_idx))
 }
 
-# Compute the error R(t) if subtree was collapsed to a single leaf
-# Replace the subtree by a single node which has constant prediction for
-# the subset of the data that would have reached the leaves, so we need
-# to find the indexes of the rows in X which reach the node
+#' Compute the error R(t) if a subtree was collapsed into a single leaf
+#'
+#' @param node A Node object representing the subtree root
+#' @param root Root node of the tree
+#' @param X Numeric feature matrix
+#' @param y Numeric target vector
+#' @param type Tree type ("regression" or "classification")
+#'
+#' @return Numeric error value
+#'
+#' @examples
+#' compute_collapsed_error(node, root, X, y, "regression")
 compute_collapsed_error <- function(node, root, X, y, type) {
   # Get the rows
   indexes <- get_node_indices(root, node, X)
@@ -81,8 +123,20 @@ compute_collapsed_error <- function(node, root, X, y, type) {
   return(compute_leaf_loss(y[indexes], prediction, type))
 }
 
-# Compute the subtree error R(T_t)
-# Sum of errors of leaves
+#' Compute the total error of a subtree
+#'
+#' Recursively computes the total error R(T_t) for the subtree rooted at node t
+#' (the sum of losses across all leaf nodes in the subtree)
+#'
+#' @param node A Node object
+#' @param root Root node of the tree
+#' @param X Numeric feature matrix
+#' @param y Numeric target vector
+#' @param type Tree type ("regression" or "classification")
+#'
+#' @return Numeric error value
+#' @eaxmples
+#' compute_collapsed_error(node, root, X, y, type)
 compute_subtree_error <- function(node, root, X, y, type) {
   if (is_leaf(node)) return(compute_collapsed_error(node, root, X, y, type))
   return(
@@ -91,7 +145,19 @@ compute_subtree_error <- function(node, root, X, y, type) {
   )
 }
 
-# Get internal nodes as list (Helper for finding weakest link)
+#' Get all internal nodes of a subtree (Helper function)
+#'
+#' Recursively collects all internal (non-leaf) nodes of a subtree
+#' This helper is used when searching for the weakest link during
+#' cost-complexity pruning
+#'
+#' @param node Root of the subtree
+#' @param nodes List just used for recursion
+#'
+#' @return List of Node objects
+#'
+#' @examples
+#' get_internal_nodes(cart@ref$root)
 get_internal_nodes <- function (node, nodes = list()) {
     if (is_leaf(node)) return(nodes)
 
@@ -103,10 +169,22 @@ get_internal_nodes <- function (node, nodes = list()) {
     return(nodes)
 }
 
-# Compute the cost complexity ratio (R(t) - R(T_t))/(#T_t - 1) for a node, where
-# - R(t) error if the subtree rooted at t gets replaced by leaf (make function for this)
-# - R(T_t) total error in the node's subtree (make function for this)
-# - #T_t number of leaves in the node's subtree (make function for this)
+#' Compute the cost-complexity ratio for a node
+#'
+#' Computes the factor  (R(t) - R(T_t))/(#T_t - 1) from Satz 6.18/6.19, where
+#' - R(t) error if the subtree rooted at t gets replaced by leaf
+#' - R(T_t) total error in the node's subtree
+#' - #T_t number of leaves in the node's subtree
+#'
+#' @param node Node whose pruning cost is evaluated
+#' @param root Root node of the tree
+#' @param X Numeric feature matrix
+#' @param y Numeric target vector
+#' @param type Tree type ("regression" or "classification")
+#'
+#' @return Numeric cost-complexity ratio
+#'
+#' @examples
 compute_cost_complexity_ratio <- function(node, root, X, y, type) {
   R_t   <- compute_collapsed_error(node, root, X, y, type)
   R_T_t <- compute_subtree_error(node,   root, X, y, type)
@@ -116,9 +194,22 @@ compute_cost_complexity_ratio <- function(node, root, X, y, type) {
 
 ###     METHODS     ###
 
-# Find the weakest link in the tree like in the Satz 6.19
-# For each internal node t we want to compute the cost-complextiy ratio
-# and find the one that minimizes it
+#' Find the weakest link in a CART tree
+#'
+#' Identifies the internal node whose removal results in the smallest cost-complexity ratio.
+#' 
+#' @name CART@find_weakest_link
+#'
+#' @param cart A CART object
+#' @param X Numeric feature matrix used for training
+#' @param y Numeric response vector
+#'
+#' @return A list containing
+#' - A Node object: the weakest link
+#' - Numeric: cc_ratio the minimum cost-complexity ratio
+#'
+#' @examples
+#' find_weakest_link(cart, X, y)
 S7::method(find_weakest_link, CART) <- function(cart, X, y) {
   nodes <- get_internal_nodes(cart@ref$root)
   min_cost_complexity_ratio <- Inf
@@ -143,9 +234,31 @@ S7::method(find_weakest_link, CART) <- function(cart, X, y) {
 }
  
 
-# Cost complexity pruning: the whole shabang
-# Start with full tree, iteratively prune the weakest link until we have just the root.
-# Important: we need to return the sequence WITH the ratios, so we need to store them as we go.
+#' Perform cost-complexity pruning on a CART tree
+#'
+#' Starts from a fully grown tree, repeatedly removes the weakest links.
+#'
+#' The result is a sequence of subtrees from Satz 6.19
+#' together with their corresponding complexity ratios.
+#'
+#' Trees are deep-copied using serialization in order to store
+#' intermediate pruning states, since the underlying data structures use environments.
+#'
+#' @name CART@cost_complexity_prune
+#'
+#' @param cart A CART object
+#' @param X Numeric feature matrix
+#' @param y Numeric response vector
+#'
+#' @return A list containing
+#' - trees: List of pruned CART trees
+#' - ratios: Numeric vector of cost-complexity parameters
+#' }
+#'
+#' @examples
+#' pruned <- cost_complexity_prune(cart, X, y)
+#' pruned$trees
+#' pruned$ratios
 S7::method(cost_complexity_prune, CART) <- function(cart, X, y) {
   trees  <- list(unserialize(serialize(cart, NULL)))  # we use serialize and unserialize  as deep copy
   ratios <- c()
