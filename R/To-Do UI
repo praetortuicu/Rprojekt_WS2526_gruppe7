@@ -1,9 +1,10 @@
 To-Do:
+- reset_db() function schreiben - done 
 
-- UI auf englisch vereinheitlichen - done
+- accepted in target umbenennen und in classification und regression tree danach scannen - done
 
-- split values aus nodes in tooltip lesen - done
+- generate_data soll spezialfall target haben nur Random Vlaues und Boolean values
 
 - zwei greedy algos (ein regression ein classification) - done
 - unter bedingung dass ein greedy ausgewählt Numerical Inputs für max depth und min leaf size - done
-- verschiedene greedy-wrapper in general schreiben 
+- verschiedene greedy-wrapper in general schreiben - testen

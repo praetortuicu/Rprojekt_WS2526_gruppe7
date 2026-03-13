@@ -9,13 +9,17 @@ server <- function(input, output, session){
   db <- reactiveVal(
     data.frame(
       Entry_ID = c("A","B","C"),
-      accepted = c(TRUE, FALSE, TRUE),
+      target = c(TRUE, FALSE, TRUE),
       stringsAsFactors = FALSE
     )
   )
   
   update_db <- function(new_db){
     db(new_db)
+  }
+  
+  reset_database <- function(db_reactive){
+    db_reactive(data.frame())
   }
   
   # ---------- REACTIVE DB ----------
@@ -252,15 +256,18 @@ server <- function(input, output, session){
         
         lapply(names(db()), function(col){
           
-          if(col %in% c("Entry_ID","accepted")) return(NULL)
+          if(col %in% c("Entry_ID")) return(NULL)
           
           selectInput(
             paste0("fill_option_",col),
             paste("Fill column", col),
-            choices=c("NA values","Random values","Alphabetical IDs")
+            choices=c("NA values","Random values","Alphabetical IDs", "Boolean values")
           )
           
         }),
+        
+        numericInput("min_target", "In case of numeric target: minimum value", value=1),
+        numericInput("max_target", "In case of numeric target: maximum value", value=5),
         
         footer=tagList(
           modalButton("Cancel"),
@@ -287,8 +294,12 @@ observeEvent(input$confirm_generate_data,{
       next
     }
     
-    if(col == "accepted"){
-      new_df[[col]] <- sample(c(TRUE,FALSE), n, replace=TRUE)
+    if(col == "target"){
+      new_df[[col]] <- switch(
+        option, 
+        "Random values" = sample(1:100,n,replace=TRUE),
+        "Boolean values" = sample(c(TRUE, FALSE), n, replace=TRUE)
+        )
       next
     }
     
@@ -298,7 +309,8 @@ observeEvent(input$confirm_generate_data,{
       option,
       "NA values" = rep(NA,n),
       "Random values" = sample(1:100,n,replace=TRUE),
-      "Alphabetical IDs" = generate_alpha_ids(n)
+      "Alphabetical IDs" = generate_alpha_ids(n),
+      "Boolean values" = sample(c(TRUE, FALSE), n, replace=TRUE)
     )
     
   }
@@ -306,6 +318,24 @@ observeEvent(input$confirm_generate_data,{
   update_db(new_df)
   removeModal()
   
+})
+
+observeEvent(input$clear_data,{
+  showModal(
+    modalDialog(
+      title = "You are about to delete your database",
+      p("Do you wish to proceed?"),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("confirm_clear_data", "Confirm")
+      )
+    )
+  )
+})
+
+observeEvent(input$confirm_clear_data, {
+  reset_database(db)
+  removeModal()
 })
   
 }

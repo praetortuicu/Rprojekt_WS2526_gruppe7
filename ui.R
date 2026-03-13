@@ -92,7 +92,9 @@ ui <- fluidPage(
         actionButton("add_entry","Add Entry", style="width:50%;")
       ),
       
-      actionButton("generate_data","Generate Random Dataset", style="width:100%;")
+      actionButton("generate_data","Generate Random Dataset", style="width:100%;"),
+      
+      actionButton("clear_data", "Clear Current Dataset", style="width:100%; margin-top:10px")
     )
   ),
   
@@ -234,7 +236,7 @@ function drawNodes(){
 function drawTooltip(){
 
   if(!hoveredNode) return;
-
+  
   const text = 
     'Node ' + hoveredNode.id +
     ' | depth: ' + hoveredNode.depth +

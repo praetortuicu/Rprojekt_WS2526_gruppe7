@@ -3,6 +3,7 @@ library(ggplot2)
 
 source("R/node.R")
 source("R/binary_tree.R")
+source("R/cart.R")
 
 node_radius <- 20
 
@@ -109,6 +110,7 @@ computate_node_layout <- function(tree){
   
   # ---------- INTERNAL NODES ----------
   
+  if(max_depth>0){
   for(depth in seq(max_depth - 1, 0, -1)){
     
     layer <- nodes[nodes$depth == depth, ]
@@ -129,6 +131,7 @@ computate_node_layout <- function(tree){
       
     }
   }
+  }else{print("Error in Tree generation no nodes has depth > 0")}
   
   # ---------- Y POSITIONS ----------
   
@@ -177,11 +180,92 @@ generate_test_tree <- function(){
 }
 
 generate_greedy_classification_tree <- function(db, max_depth, min_leaf_size){
-  #To-DO: Implement greedy classification tree generator based on CART, nodes and binary tree structure
-  tree
+  
+  if(nrow(db) == 0){
+    stop("Database empty")
+  }
+  
+  if(!"target" %in% names(db)){
+    stop("Column 'target' must exist")
+  }
+  
+  # ---------- TYPE CHECK ----------
+  if(!(is.logical(db$target) || is.integer(db$target) || is.factor(db$target))){
+    stop("For classification, 'target' must be logical, integer or factor")
+  }
+  
+  # convert to integer classes
+  if(is.logical(db$target)){
+    y <- as.integer(db$target) + 1L
+  } else if(is.factor(db$target)){
+    y <- as.integer(db$target)
+  } else {
+    y <- as.integer(db$target)
+  }
+  
+  # ---------- FEATURES ----------
+  feature_cols <- setdiff(names(db), c("Entry_ID", "target"))
+  
+  if(length(feature_cols) == 0){
+    stop("No feature columns available")
+  }
+  
+  X <- as.matrix(db[, feature_cols, drop = FALSE])
+  
+  # ---------- CART ----------
+  cart <- CART(
+    root = NULL,
+    type = "classification",
+    max_depth = max_depth,
+    min_leaf_size = min_leaf_size
+  )
+  
+  fit(cart, X, y)
+  
+  cart@ref$n_leaves <- count_leaves(cart)
+  cart@ref$depth <- get_depth(cart)
+  
+  return(cart)
 }
 
 generate_greedy_regression_tree <- function(db, max_depth, min_leaf_size){
-  #TO-DO: Implement greedy regression tree generator based on CART, nodes and binary tree structure
-  tree
+  
+  if(nrow(db) == 0){
+    stop("Database empty")
+  }
+  
+  if(!"target" %in% names(db)){
+    stop("Column 'target' must exist")
+  }
+  
+  # ---------- TYPE CHECK ----------
+  if(!is.numeric(db$target)){
+    stop("For regression, 'target' must be numeric")
+  }
+  
+  y <- as.numeric(db$target)
+  
+  # ---------- FEATURES ----------
+  feature_cols <- setdiff(names(db), c("Entry_ID", "target"))
+  
+  if(length(feature_cols) == 0){
+    stop("No feature columns available")
+  }
+  
+  X <- as.matrix(db[, feature_cols, drop = FALSE])
+  
+  # ---------- CART ----------
+  cart <- CART(
+    root = NULL,
+    type = "regression",
+    max_depth = max_depth,
+    min_leaf_size = min_leaf_size
+  )
+  
+  fit(cart, X, y)
+  
+  cart@ref$n_leaves <- count_leaves(cart)
+  cart@ref$depth <- get_depth(cart)
+  
+  return(cart)
 }
