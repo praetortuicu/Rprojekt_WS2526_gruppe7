@@ -47,6 +47,10 @@ server <- function(input, output, session){
     paste("Leafs:", num_leafs())
   })
   
+  # ---------- CONDITIONAL INPUTS ----------
+  
+  
+  
   # ---------- DRAW TREE ----------
   
   observeEvent(input$draw_tree,{
@@ -56,7 +60,7 @@ server <- function(input, output, session){
       showModal(
         modalDialog(
           title = "Error",
-          p("Die aktuellen Einstellungen für die Baumgenerierung sind ungültig."),
+          p("Current Settings for Tree Generation are not valid."),
           footer = modalButton("Close")
         )
       )
@@ -66,11 +70,11 @@ server <- function(input, output, session){
     
     showModal(
       modalDialog(
-        title = "Baum generieren",
-        p("Algorithmus:", input$choose_algo),
-        p("Menge an Daten:", nrow(db())),
+        title = "Generate Tree",
+        p("Algorithm:", input$choose_algo),
+        p("Amount of Data Entries:", nrow(db())),
         br(),
-        p("Möchten Sie fortfahren?"),
+        p("Do you wish to proceed?"),
         footer = tagList(
           modalButton("Cancel"),
           actionButton("confirm_draw_tree", "Confirm")
@@ -87,7 +91,8 @@ server <- function(input, output, session){
     tic()
     tree <- switch(
       input$choose_algo,
-      "Greedy-Algorithm" = generate_greedy_tree(db()),
+      "Greedy-Algorithm by Classification" = generate_greedy_classification_tree(db(), input$max_depth, input$min_leaf_size),
+      "Greedy-Algorithm by Regression" = generate_greedy_regression_tree(db(), input$max_depth, input$min_leaf_size),
       "Bagging" = generate_bagging_tree(db()),
       "Random Forest" = generate_random_forest_tree(db()),
       "Boosting" = generate_boosting_tree(db()),
@@ -97,16 +102,23 @@ server <- function(input, output, session){
     t <- toc(quiet = TRUE)
     timer(t$toc - t$tic)
     
+    #print(tree)
+    
     depth(tree@ref$depth)
     num_leafs(tree@ref$n_leaves)
     
     #computate tree layout
     layout <- computate_node_layout(tree)
+    
+    #print(layout$nodes)
+    
     nodes_df <- data.frame(
       id = layout$nodes$node_id,
       parent_id = layout$nodes$parent_id,
       x = layout$nodes$x,
       y = layout$nodes$y,
+      s_feature = layout$nodes$s_feature,
+      s_value = layout$nodes$s_value,
       depth = layout$nodes$depth,
       is_leaf = layout$nodes$is_leaf
     )
@@ -132,7 +144,7 @@ server <- function(input, output, session){
     
     showModal(
       modalDialog(
-        title = "Eintrag hinzufügen",
+        title = "Add Entry",
         
         lapply(names(db()), function(col){
           textInput(paste0("new_", col), paste("Value for", col))
@@ -171,7 +183,7 @@ server <- function(input, output, session){
     
     showModal(
       modalDialog(
-        title = "Datenkriterium hinzufügen",
+        title = "Add Data Column",
         
         textInput("new_column_name", "Name of new column"),
         

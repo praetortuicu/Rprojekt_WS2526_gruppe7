@@ -18,8 +18,12 @@ get_all_nodes <- function(tree){
   nodes <- data.frame(
     node_id = integer(),
     parent_id = integer(),
+    
     depth = integer(),
-    is_leaf = logical()
+    is_leaf = logical(),
+    
+    s_feature = numeric(),
+    s_value = numeric()
   )
   
   counter <- 1
@@ -33,7 +37,9 @@ get_all_nodes <- function(tree){
       node_id = id,
       parent_id = parent,
       depth = depth,
-      is_leaf = is_leaf(node)
+      is_leaf = is_leaf(node),
+      s_feature = node@ref$s_feature,
+      s_value = node@ref$s_value
     ))
     
     if(!is_leaf(node)){
@@ -69,13 +75,16 @@ get_subtree_nodes <- function(nodes, node_id){
 }
 
 
-# ------------------------------------------------
-# LAYOUT
-# ------------------------------------------------
-
 computate_node_layout <- function(tree){
   
   nodes <- get_all_nodes(tree)
+  
+  if(nrow(nodes) == 0) return(NULL)
+  
+  # safety
+  if(!"is_leaf" %in% names(nodes)){
+    nodes$is_leaf <- FALSE
+  }
   
   nodes$x <- NA_real_
   nodes$y <- NA_real_
@@ -86,7 +95,7 @@ computate_node_layout <- function(tree){
   
   max_depth <- max(nodes$depth)
   
-  # assign leaf x positions
+  # ---------- LEAF POSITIONS ----------
   
   leaf_ids <- nodes$node_id[nodes$is_leaf]
   
@@ -98,13 +107,13 @@ computate_node_layout <- function(tree){
   
   nodes$x[nodes$is_leaf] <- leaf_x
   
-  # assign internal nodes
+  # ---------- INTERNAL NODES ----------
   
-  for(depth in seq(max_depth-1,0,-1)){
+  for(depth in seq(max_depth - 1, 0, -1)){
     
-    layer <- nodes[nodes$depth == depth,]
+    layer <- nodes[nodes$depth == depth, ]
     
-    for(i in 1:nrow(layer)){
+    for(i in seq_len(nrow(layer))){
       
       id <- layer$node_id[i]
       
@@ -112,19 +121,22 @@ computate_node_layout <- function(tree){
       
       child_x <- nodes$x[nodes$node_id %in% children]
       
+      child_x <- child_x[!is.na(child_x)]
+      
       if(length(child_x) > 0){
         nodes$x[nodes$node_id == id] <- mean(child_x)
       }
       
     }
-    
   }
   
-  # assign y positions
+  # ---------- Y POSITIONS ----------
   
   nodes$y <- nodes$depth * y_spacing + node_radius
   
-  canvas_width <- max(nodes$x) + 200
+  # ---------- CANVAS SIZE ----------
+  
+  canvas_width <- max(nodes$x, na.rm = TRUE) + 200
   canvas_height <- (max_depth + 1) * y_spacing + 200
   
   list(
@@ -136,7 +148,7 @@ computate_node_layout <- function(tree){
 
 
 # ------------------------------------------------
-# TEST TREE
+# TTREE GENERATORS
 # ------------------------------------------------
 
 generate_test_tree <- function(){
@@ -161,5 +173,15 @@ generate_test_tree <- function(){
   tree@ref$n_nodes <- 5
   tree@ref$n_leaves <- 3
   
+  tree
+}
+
+generate_greedy_classification_tree <- function(db, max_depth, min_leaf_size){
+  #To-DO: Implement greedy classification tree generator based on CART, nodes and binary tree structure
+  tree
+}
+
+generate_greedy_regression_tree <- function(db, max_depth, min_leaf_size){
+  #TO-DO: Implement greedy regression tree generator based on CART, nodes and binary tree structure
   tree
 }

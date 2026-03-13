@@ -1,9 +1,9 @@
-To-Do: Ui
+To-Do:
 
-- ID Attribut zu node-class
+- UI auf englisch vereinheitlichen - done
 
-- Canvas und Tree-generation testen
+- split values aus nodes in tooltip lesen - done
 
-- Algorithmen als fuctionen die angwendet werden können/ R Objekte aus Fabrik
-
-(- Load Data from csv-button)
+- zwei greedy algos (ein regression ein classification) - done
+- unter bedingung dass ein greedy ausgewählt Numerical Inputs für max depth und min leaf size - done
+- verschiedene greedy-wrapper in general schreiben 

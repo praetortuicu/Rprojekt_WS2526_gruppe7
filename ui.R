@@ -5,7 +5,7 @@ ui <- fluidPage(
   tags$h2("Another Random Forest App", style="text-align:center;"),
   
   tags$div(
-    style="position:relative; width:100%; height:900px;",
+    style="position:relative; width:100%; height:1000px;",
     
     # ---------- CANVAS ----------
     tags$div(
@@ -43,7 +43,7 @@ ui <- fluidPage(
       selectInput(
         "choose_algo",
         "Choose Algorithm",
-        choices = c("Choose Algorithm", "Greedy-Algorithm", "Bagging", "Random Forest", "Boosting", "Test"),
+        choices = c("Choose Algorithm", "Greedy-Algorithm by Classification", "Greedy-Algorithm by Regression", "Bagging", "Random Forest", "Boosting", "Test"),
         width = "100%",
       ),
       
@@ -53,6 +53,18 @@ ui <- fluidPage(
       tags$div(textOutput("leafs"), style="font-size:18px;")
     ),
     
+    # below, conditional on select input
+    
+    # if input$choose_algo == "Greedy-Algorithm by Classification" or "Greedy-Algorithm by Regression"
+    # have textinputs for max_depth and min_leaf_size
+    conditionalPanel(
+      condition = "input.choose_algo == 'Greedy-Algorithm by Classification' || input.choose_algo == 'Greedy-Algorithm by Regression'",
+      div(
+        style="position:absolute; top:750px; left:10px",
+        column(width = 5, numericInput("max_depth", "Max Depth", value = 5, min= 1, step = 1, width = "80%")),
+        column(width = 5, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%"))
+      )
+    ),
     
     # ---------- RECHTS UNTER CANVAS ----------
     tags$div(
@@ -226,16 +238,16 @@ function drawTooltip(){
   const text = 
     'Node ' + hoveredNode.id +
     ' | depth: ' + hoveredNode.depth +
-    ' | ' + (hoveredNode.depth===0 ? 'ROOT' :
-      (hoveredNode.is_leaf ? 'LEAF' : 'INTERNAL'));
+    ' Split Condition: ' + hoveredNode.s_feature + ' <> ' + hoveredNode.s_value;
 
   ctx.setTransform(1,0,0,1,0,0);
 
   ctx.font = '14px Arial';
+  ctx.textAlign = 'left';
 
   const padding = 8;
   const width = ctx.measureText(text).width + padding*2;
-  const height = 24;
+  const height = 32;
 
   const x = 20;
   const y = 20;
@@ -373,7 +385,9 @@ function dfToRows(df){
       x: df.x[i],
       y: df.y[i],
       depth: df.depth[i],
-      is_leaf: df.is_leaf[i]
+      is_leaf: df.is_leaf[i],
+      s_feature: df.s_feature[i],
+      s_value: df.s_value[i]
     });
 
   }
