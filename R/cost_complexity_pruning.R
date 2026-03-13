@@ -1,28 +1,30 @@
 # cost_complexity_pruning.R
 
+# TODO Check safety
+# TODO Documentation
+
+
 ###     GENERICS      ###
-get_subtree_error     <- S7::new_generic("get_subtree_error",     "tree")
-get_weakest_link      <- S7::new_generic("get_weakest_link",      "tree")
+compute_subtree_error     <- S7::new_generic("compute_subtree_error",     "tree")
+find_weakest_link      <- S7::new_generic("find_weakest_link",      "tree")
 cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "tree")
 
 
 ###     HELPERS     ###
 
 # Count leaves in subtree rooted at given node
-# TODO Check safety
-# TODO Documentation
 count_subtree_leaves <- function(node) {
   if (is_leaf(node)) return(1L)
-  count_subtree_leaves(get_left_child(node)) + count_subtree_leaves(get_left_right(node))
+  count_subtree_leaves(get_left_child(node)) + count_subtree_leaves(get_right_child(node))
 }
 
 # Compute the error R(t) if subtree was replaced by single leaf
-compute_node_error <- function(node, root, X, y) {
+compute_node_error <- function(node, X, y) {
   # TODO
 }
 
 # Compute the subtree error R(T_t)
-sum_leaf_errors <- function(node, root, X, y) {
+compute_subtree_error <- function(node, X, y) {
   # TODO
 }
 
@@ -42,7 +44,7 @@ get_internal_nodes <- function (node, nodes = list()) {
 # - R(t) error if the subtree rooted at t gets replaced by leaf (make function for this)
 # - R(T_t) total error in the node's subtree (make function for this)
 # - #T_t number of leaves in the node's subtree (make function for this)
-compute_cost_complexity_ratio <- function(node, root, X, y) {
+compute_cost_complexity_ratio <- function(node, X, y) {
   # TODO 
 }
 
@@ -51,8 +53,8 @@ compute_cost_complexity_ratio <- function(node, root, X, y) {
 
 # Compute total resubstitution error of a subtree
 #
-# Wrap sum_leaf_errors() as an S7 method on BinaryTree
-S7::method(get_subtree_error, BinaryTree) <- function(tree, node, X, y) {
+# Wrap compute_subtree_error() as an S7 method on BinaryTree
+S7::method(compute_subtree_error, BinaryTree) <- function(tree, node, X, y) {
   # TODO
 }
 
@@ -61,11 +63,26 @@ S7::method(get_subtree_error, BinaryTree) <- function(tree, node, X, y) {
 # For each internal node t we want to compute the cost-complextiy ratio
 # and find the one that minimizes it
 S7::method(find_weakest_link, BinaryTree) <- function(tree, X, y) {
-  # TODO
-  # iterate over internal nodes (list)
-  
-  # compute cost complexity ratio for each node and find the minimum
-  # return that node
+  nodes <- get_internal_nodes(tree@ref$root)
+  min_cost_complexity_ratio <- Inf
+  weakest_link <- NULL
+  # iterate over internal nodes
+  for (current_node in nodes) {
+    node_error <- compute_node_error(current_node, X, y)
+    subtree_error <- compute_subtree_error(current_node, X, y)
+    num_leaves <- count_subtree_leaves(current_node)
+    cost_complexity_ratio <- (node_error - subtree_error) / (num_leaves - 1L)
+    # track the minimum and store the argmin
+    if (cost_complexity_ratio < min_cost_complexity_ratio) {
+      min_cost_complexity_ratio <- cost_complexity_ratio
+      weakest_link <- current_node
+    }
+  }
+
+  return(list(
+    node = weakest_link,
+    cc_ratio = min_cost_complexity_ratio
+  ))
 }
 
 # Cost complexity pruning: the whole shabang
