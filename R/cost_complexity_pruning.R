@@ -32,8 +32,8 @@ get_internal_nodes <- function (node, nodes = list()) {
 
     nodes <- c(nodes, list(node))
 
-    nodes <- collect_internal_nodes(get_left_child(node), nodes)
-    nodes <- collect_internal_nodes(get_right_child(node), nodes)
+    nodes <- get_internal_nodes(get_left_child(node), nodes)
+    nodes <- get_internal_nodes(get_right_child(node), nodes)
 
     return(nodes)
 }
@@ -63,6 +63,7 @@ S7::method(get_subtree_error, BinaryTree) <- function(tree, node, X, y) {
 S7::method(find_weakest_link, BinaryTree) <- function(tree, X, y) {
   # TODO
   # iterate over internal nodes (list)
+  
   # compute cost complexity ratio for each node and find the minimum
   # return that node
 }
