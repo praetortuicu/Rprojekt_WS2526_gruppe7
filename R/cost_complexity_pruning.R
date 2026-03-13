@@ -11,6 +11,7 @@ cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "cart")
 #'
 #' @param node A Node object
 #' @return Integer number of leaves
+#' 
 #' @examples
 #' count_subtree_leaves(node)
 count_subtree_leaves <- function(node) {
@@ -87,9 +88,9 @@ get_node_indices <- function(root, node, X, indices = 1:nrow(X)) {
   feature <- root@ref$s_feature
   threshold <- root@ref$s_value
 
-  # split indices according to node rule used during tree construction (< for left, >= for right)
-  left_idx  <- indices[X[indices, feature] < threshold]
-  right_idx <- indices[X[indices, feature] >= threshold]
+  # split indices according to node rule used during tree construction (<= for left, > for right)
+  left_idx  <- indices[X[indices, feature] <= threshold]
+  right_idx <- indices[X[indices, feature] > threshold]
 
   # search left subtree
   result <- get_node_indices(get_left_child(root), node, X, left_idx)
