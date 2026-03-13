@@ -4,8 +4,8 @@
 # TODO Documentation
 
 ###     GENERICS      ###
-find_weakest_link      <- S7::new_generic("find_weakest_link",      "tree")
-cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "tree")
+find_weakest_link      <- S7::new_generic("find_weakest_link",      "cart")
+cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "cart")
 
 ###     HELPERS     ###
 
@@ -13,6 +13,26 @@ cost_complexity_prune <- S7::new_generic("cost_complexity_prune", "tree")
 count_subtree_leaves <- function(node) {
   if (is_leaf(node)) return(1L)
   return(count_subtree_leaves(get_left_child(node)) + count_subtree_leaves(get_right_child(node)))
+}
+
+# Build a leaf prediction from the target values for the requested task
+compute_leaf_prediction <- function(values, type) {
+  if (type == "classification") {
+    return(as.integer(which.max(tabulate(values))))
+  }
+
+  mean(values)
+}
+
+# Loss for a leaf given its prediction
+compute_leaf_loss <- function(values, prediction, type) {
+  if (length(values) == 0) return(0)
+
+  if (type == "classification") {
+    return(sum(values != prediction))
+  }
+
+  sum((values - prediction)^2)
 }
 
 # Helper function for compute_collapsed_error
@@ -33,9 +53,9 @@ get_node_indices <- function(root, node, X, indices = 1:nrow(X)) {
   feature <- root@ref$s_feature
   threshold <- root@ref$s_value
 
-  # split indices according to node rule
-  left_idx  <- indices[X[indices, feature] <= threshold]
-  right_idx <- indices[X[indices, feature] > threshold]
+  # split indices according to node rule used during tree construction (< for left, >= for right)
+  left_idx  <- indices[X[indices, feature] < threshold]
+  right_idx <- indices[X[indices, feature] >= threshold]
 
   # search left subtree
   result <- get_node_indices(get_left_child(root), node, X, left_idx)
@@ -51,22 +71,23 @@ get_node_indices <- function(root, node, X, indices = 1:nrow(X)) {
 # Replace the subtree by a single node which has constant prediction for
 # the subset of the data that would have reached the leaves, so we need
 # to find the indexes of the rows in X which reach the node
-compute_collapsed_error <- function(node, root, X, y) {
+compute_collapsed_error <- function(node, root, X, y, type) {
   # Get the rows
-  indexes <- get_node_indices(root, node, X) # TODO Implement this function
+  indexes <- get_node_indices(root, node, X)
+
+  if (length(indexes) == 0) return(0)
   # Mean prediction
-  prediction <- mean(y[indexes])
-  # Return squared error of the true values minus the mean
-  return(sum((y[indexes] - prediction)^2))
+  prediction <- compute_leaf_prediction(y[indexes], type)
+  return(compute_leaf_loss(y[indexes], prediction, type))
 }
 
 # Compute the subtree error R(T_t)
 # Sum of errors of leaves
-compute_subtree_error <- function(node, root, X, y) {
-  if (is_leaf(node)) return(compute_collapsed_error(node, root, X, y))
+compute_subtree_error <- function(node, root, X, y, type) {
+  if (is_leaf(node)) return(compute_collapsed_error(node, root, X, y, type))
   return(
-    compute_subtree_error(get_left_child(node),  root, X, y)
-    + compute_subtree_error(get_right_child(node), root, X, y)
+    compute_subtree_error(get_left_child(node),  root, X, y, type)
+    + compute_subtree_error(get_right_child(node), root, X, y, type)
   )
 }
 
@@ -86,11 +107,11 @@ get_internal_nodes <- function (node, nodes = list()) {
 # - R(t) error if the subtree rooted at t gets replaced by leaf (make function for this)
 # - R(T_t) total error in the node's subtree (make function for this)
 # - #T_t number of leaves in the node's subtree (make function for this)
-compute_cost_complexity_ratio <- function(node, root, X, y) {
-  R_t   <- compute_collapsed_error(node, root, X, y)
-  R_T_t <- compute_subtree_error(node,   root, X, y)
+compute_cost_complexity_ratio <- function(node, root, X, y, type) {
+  R_t   <- compute_collapsed_error(node, root, X, y, type)
+  R_T_t <- compute_subtree_error(node,   root, X, y, type)
   leaves <- count_subtree_leaves(node)
-  return((R_t - R_T_t) / (leaves - 1L))
+  return((R_t - R_T_t) / (leaves - 1L)) # Possible zero division?
 }
 
 ###     METHODS     ###
@@ -98,18 +119,20 @@ compute_cost_complexity_ratio <- function(node, root, X, y) {
 # Find the weakest link in the tree like in the Satz 6.19
 # For each internal node t we want to compute the cost-complextiy ratio
 # and find the one that minimizes it
-S7::method(find_weakest_link, BinaryTree) <- function(tree, X, y) {
-  nodes <- get_internal_nodes(tree@ref$root)
+S7::method(find_weakest_link, CART) <- function(cart, X, y) {
+  nodes <- get_internal_nodes(cart@ref$root)
   min_cost_complexity_ratio <- Inf
   weakest_link <- NULL
- 
+  tree_type <- cart@ref$type
+  if (is.null(tree_type)) tree_type <- "regression"
+
   # Iterate over each internal node
   for (current_node in nodes) {
     # Track minimum cost_complexity_ratio
-    ratio <- compute_cost_complexity_ratio(current_node, tree@ref$root, X, y)
+    ratio <- compute_cost_complexity_ratio(current_node, cart@ref$root, X, y, tree_type)
     if (ratio < min_cost_complexity_ratio) {
       min_cost_complexity_ratio <- ratio
-      weakest_link              <- current_node
+      weakest_link <- current_node
     }
   }
  
@@ -121,10 +144,37 @@ S7::method(find_weakest_link, BinaryTree) <- function(tree, X, y) {
  
 
 # Cost complexity pruning: the whole shabang
-# TODO: 
-#
 # Start with full tree, iteratively prune the weakest link until we have just the root.
 # Important: we need to return the sequence WITH the ratios, so we need to store them as we go.
-S7::method(cost_complexity_prune, BinaryTree) <- function(tree, X, y) {
-  # TODO
+S7::method(cost_complexity_prune, CART) <- function(cart, X, y) {
+  trees  <- list(unserialize(serialize(cart, NULL)))  # we use serialize and unserialize  as deep copy
+  ratios <- c()
+  tree_type <- cart@ref$type
+  if (is.null(tree_type)) tree_type <- "regression"
+
+  while (count_subtree_leaves(cart@ref$root) > 1L) {
+
+    result <- find_weakest_link(cart, X, y)
+
+    if (is.null(result$node)) break
+
+    # store alpha
+    ratios <- c(ratios, result$cc_ratio)
+
+    # compute leaf value for collapsed node
+    idx <- get_node_indices(cart@ref$root, result$node, X)
+    if (length(idx) == 0) {
+      leaf_value <- compute_leaf_prediction(y, tree_type)
+    } else {
+      leaf_value <- compute_leaf_prediction(y[idx], tree_type)
+    }
+
+    # prune subtree
+    prune(cart, result$node, leaf_value)
+
+    # store snapshot of pruned tree
+    trees <- c(trees, list(unserialize(serialize(cart, NULL))))
+  }
+
+  return(list(trees  = trees, ratios = ratios))
 }
