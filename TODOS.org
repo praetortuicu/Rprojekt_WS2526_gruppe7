@@ -1,0 +1,22 @@
+#+title: Cost Complexity Pruning in R
+#+author: Yousef Khell
+
+* Helper functions
+Theo's latest PR includes new helper functions from
+~binary_tree.R~
+- ~count_leaves~
+- ~predict_tree~
+- ~prune~
+- ~get_depth~
+~cart.R~
+- ~fit~
+- ~find_split~
+- ~compute_leaf_value~
+
+* Cost Complexity Pruning
+Cost complexity pruning is essentially repeated weakest link pruning.
+* Weakest link pruning
+For each internal node t we want to compute the cost-complextiy value (Added error/nodes removed) given by (R(t) - R(T_t))/(#T_t - 1) where
+- R(t) error if the subtree rooted at t gets replaced by leaf
+- R(T_t) total error in the node's subtree
+- #T_t number of leaves in the node's subtree
