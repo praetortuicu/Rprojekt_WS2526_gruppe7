@@ -258,16 +258,38 @@ server <- function(input, output, session){
           
           if(col %in% c("Entry_ID")) return(NULL)
           
-          selectInput(
-            paste0("fill_option_",col),
-            paste("Fill column", col),
-            choices=c("NA values","Random values","Alphabetical IDs", "Boolean values")
-          )
+          if(col == "target"){
+            
+            return(tagList(
+              
+              selectInput(
+                "fill_target",
+                "Choose Target Type",
+                choices = c("Boolean values", "Random values")
+              ),
+              
+              numericInput(
+                "min_target",
+                "In case of numeric target: minimum value",
+                value = 1
+              ),
+              
+              numericInput(
+                "max_target",
+                "In case of numeric target: maximum value",
+                value = 5
+              )
+              
+            ))
+            
+          }
           
+          selectInput(
+            paste0("fill_option_", col),
+            paste("Fill column", col),
+            choices = c("NA values", "Random values", "Alphabetical IDs", "Boolean values")
+          )
         }),
-        
-        numericInput("min_target", "In case of numeric target: minimum value", value=1),
-        numericInput("max_target", "In case of numeric target: maximum value", value=5),
         
         footer=tagList(
           modalButton("Cancel"),
@@ -295,24 +317,29 @@ observeEvent(input$confirm_generate_data,{
     }
     
     if(col == "target"){
+      
+      option <- input$fill_target
+      min_target <- input$min_target
+      max_target <- input$max_target
+      
       new_df[[col]] <- switch(
         option, 
-        "Random values" = sample(1:100,n,replace=TRUE),
-        "Boolean values" = sample(c(TRUE, FALSE), n, replace=TRUE)
-        )
+        "Random values" = sample(min_target:max_target, n, replace = TRUE),
+        "Boolean values" = sample(c(TRUE, FALSE), n, replace = TRUE)
+      )
+      
       next
     }
     
-    option <- input[[paste0("fill_option_",col)]]
+    option <- input[[paste0("fill_option_", col)]]
     
     new_df[[col]] <- switch(
       option,
-      "NA values" = rep(NA,n),
-      "Random values" = sample(1:100,n,replace=TRUE),
+      "NA values" = rep(NA, n),
+      "Random values" = sample(1:100, n, replace = TRUE),
       "Alphabetical IDs" = generate_alpha_ids(n),
-      "Boolean values" = sample(c(TRUE, FALSE), n, replace=TRUE)
+      "Boolean values" = sample(c(TRUE, FALSE), n, replace = TRUE)
     )
-    
   }
   
   update_db(new_df)

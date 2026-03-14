@@ -1,10 +1,7 @@
 To-Do:
-- reset_db() function schreiben - done 
 
-- accepted in target umbenennen und in classification und regression tree danach scannen - done
+- Cost Complexity Pruning Wrapper schreiben
 
-- generate_data soll spezialfall target haben nur Random Vlaues und Boolean values
+- Error in der Tree generation (i.e wenn Parameter zu strikt sind/falscher typ von target) sollen GUI-Error werfen anstatt Terminal 
 
-- zwei greedy algos (ein regression ein classification) - done
-- unter bedingung dass ein greedy ausgewählt Numerical Inputs für max depth und min leaf size - done
-- verschiedene greedy-wrapper in general schreiben - testen
+- Canvas soll auf mind. Windowbreite gestreckt werden damit kein nerviger weißer Rand mehr entsteht
