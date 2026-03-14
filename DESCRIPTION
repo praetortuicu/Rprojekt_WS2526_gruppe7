@@ -20,3 +20,5 @@ Collate:
     'binary_tree.R'
     'node.R'
 	'cart.R'
+	'random_forests_cart.R'
+	'random_forests.R'
