@@ -96,7 +96,7 @@ server <- function(input, output, session){
     tree <- switch(
       input$choose_algo,
       "Greedy-Algorithm" = generate_greedy_cart_tree(db(), input$max_depth, input$min_leaf_size),
-      "Cost Complexity Pruning" = generate_pruned_cart_tree(db(), input$max_depth, input$min_leaf_size, prune_level),
+      "Cost Complexity Pruning" = generate_pruned_cart_tree(db(), input$max_depth, input$min_leaf_size, input$prune_level),
       "Bagging" = generate_bagging_tree(db()),
       "Random Forest" = generate_random_forest_tree(db()),
       "Boosting" = generate_boosting_tree(db()),

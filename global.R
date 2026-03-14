@@ -4,6 +4,7 @@ library(ggplot2)
 source("R/node.R")
 source("R/binary_tree.R")
 source("R/cart.R")
+source("R/cost_complexity_pruning.R")
 
 node_radius <- 20
 

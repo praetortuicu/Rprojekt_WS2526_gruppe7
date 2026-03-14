@@ -70,15 +70,9 @@ ui <- fluidPage(
       condition = "input.choose_algo == 'Cost Complexity Pruning'",
       div(
         style="position:absolute; top:750px; left:10px",
-        column(width = 5, numericInput("max_depth", "Max Depth", value = 5, min= 1, step = 1, width = "80%")),
-        column(width = 5, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%")),
-        sliderInput(
-          "prune_level",
-          "Pruning level",
-          min = 1,
-          max = 20,
-          value = 1
-        )
+        column(width = 4, numericInput("max_depth", "Max Depth", value = 5, min= 1, step = 1, width = "80%")),
+        column(width = 4, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%")),
+        column(width = 5, numericInput("prune_level", "Prune Level", value = 1, min = 0, step = 1, width = "80%"))
       )
     ),
     
