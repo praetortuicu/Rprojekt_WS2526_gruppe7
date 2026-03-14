@@ -179,7 +179,7 @@ generate_test_tree <- function(){
   tree
 }
 
-generate_greedy_classification_tree <- function(db, max_depth, min_leaf_size){
+generate_greedy_cart_tree <- function(db, max_depth, min_leaf_size){
   
   if(nrow(db) == 0){
     stop("Database empty")
@@ -189,21 +189,31 @@ generate_greedy_classification_tree <- function(db, max_depth, min_leaf_size){
     stop("Column 'target' must exist")
   }
   
-  # ---------- TYPE CHECK ----------
-  if(!(is.logical(db$target) || is.integer(db$target) || is.factor(db$target))){
-    stop("For classification, 'target' must be logical, integer or factor")
-  }
+  # ---------- DETERMINE TYPE ----------
   
-  # convert to integer classes
-  if(is.logical(db$target)){
-    y <- as.integer(db$target) + 1L
-  } else if(is.factor(db$target)){
-    y <- as.integer(db$target)
+  if(is.numeric(db$target)){
+    
+    type <- "regression"
+    y <- as.numeric(db$target)
+    
+  } else if(is.logical(db$target) || is.integer(db$target) || is.factor(db$target)){
+    
+    type <- "classification"
+    
+    if(is.logical(db$target)){
+      y <- as.integer(db$target) + 1L
+    } else if(is.factor(db$target)){
+      y <- as.integer(db$target)
+    } else {
+      y <- as.integer(db$target)
+    }
+    
   } else {
-    y <- as.integer(db$target)
+    stop("target must be numeric (regression) or logical/integer/factor (classification)")
   }
   
   # ---------- FEATURES ----------
+  
   feature_cols <- setdiff(names(db), c("Entry_ID", "target"))
   
   if(length(feature_cols) == 0){
@@ -213,9 +223,10 @@ generate_greedy_classification_tree <- function(db, max_depth, min_leaf_size){
   X <- as.matrix(db[, feature_cols, drop = FALSE])
   
   # ---------- CART ----------
+  
   cart <- CART(
     root = NULL,
-    type = "classification",
+    type = type,
     max_depth = max_depth,
     min_leaf_size = min_leaf_size
   )
@@ -228,44 +239,46 @@ generate_greedy_classification_tree <- function(db, max_depth, min_leaf_size){
   return(cart)
 }
 
-generate_greedy_regression_tree <- function(db, max_depth, min_leaf_size){
+generate_pruned_cart_tree <- function(db, max_depth, min_leaf_size, alpha_index = 1){
   
-  if(nrow(db) == 0){
-    stop("Database empty")
-  }
-  
-  if(!"target" %in% names(db)){
-    stop("Column 'target' must exist")
-  }
-  
-  # ---------- TYPE CHECK ----------
-  if(!is.numeric(db$target)){
-    stop("For regression, 'target' must be numeric")
-  }
-  
-  y <- as.numeric(db$target)
+  if(nrow(db) == 0) stop("Database empty")
+  if(!"target" %in% names(db)) stop("target column missing")
   
   # ---------- FEATURES ----------
-  feature_cols <- setdiff(names(db), c("Entry_ID", "target"))
-  
-  if(length(feature_cols) == 0){
-    stop("No feature columns available")
-  }
-  
+  feature_cols <- setdiff(names(db), c("Entry_ID","target"))
   X <- as.matrix(db[, feature_cols, drop = FALSE])
   
-  # ---------- CART ----------
+  # ---------- TARGET ----------
+  if(is.numeric(db$target)){
+    type <- "regression"
+    y <- as.numeric(db$target)
+  } else {
+    type <- "classification"
+    y <- as.integer(as.factor(db$target))
+  }
+  
+  # ---------- TRAIN FULL TREE ----------
   cart <- CART(
     root = NULL,
-    type = "regression",
+    type = type,
     max_depth = max_depth,
     min_leaf_size = min_leaf_size
   )
   
   fit(cart, X, y)
   
-  cart@ref$n_leaves <- count_leaves(cart)
-  cart@ref$depth <- get_depth(cart)
+  # ---------- PRUNE ----------
+  pruned <- cost_complexity_prune(cart, X, y)
   
-  return(cart)
+  trees <- pruned$trees
+  
+  # choose tree from pruning path
+  alpha_index <- min(alpha_index, length(trees))
+  
+  tree <- trees[[alpha_index]]
+  
+  tree@ref$depth <- get_depth(tree)
+  tree@ref$n_leaves <- count_leaves(tree)
+  
+  return(tree)
 }

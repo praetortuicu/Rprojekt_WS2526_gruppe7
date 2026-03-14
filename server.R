@@ -95,8 +95,8 @@ server <- function(input, output, session){
     tic()
     tree <- switch(
       input$choose_algo,
-      "Greedy-Algorithm by Classification" = generate_greedy_classification_tree(db(), input$max_depth, input$min_leaf_size),
-      "Greedy-Algorithm by Regression" = generate_greedy_regression_tree(db(), input$max_depth, input$min_leaf_size),
+      "Greedy-Algorithm" = generate_greedy_cart_tree(db(), input$max_depth, input$min_leaf_size),
+      "Cost Complexity Pruning" = generate_pruned_cart_tree(db(), input$max_depth, input$min_leaf_size, prune_level),
       "Bagging" = generate_bagging_tree(db()),
       "Random Forest" = generate_random_forest_tree(db()),
       "Boosting" = generate_boosting_tree(db()),

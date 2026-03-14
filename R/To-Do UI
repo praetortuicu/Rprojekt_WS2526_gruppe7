@@ -1,6 +1,6 @@
 To-Do:
 
-- Cost Complexity Pruning Wrapper schreiben
+- Cost Complexity Pruning Wrapper schreiben - testen
 
 - Error in der Tree generation (i.e wenn Parameter zu strikt sind/falscher typ von target) sollen GUI-Error werfen anstatt Terminal 
 

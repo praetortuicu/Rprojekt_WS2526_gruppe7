@@ -43,7 +43,7 @@ ui <- fluidPage(
       selectInput(
         "choose_algo",
         "Choose Algorithm",
-        choices = c("Choose Algorithm", "Greedy-Algorithm by Classification", "Greedy-Algorithm by Regression", "Bagging", "Random Forest", "Boosting", "Test"),
+        choices = c("Choose Algorithm", "Greedy-Algorithm", "Cost Complexity Pruning", "Bagging", "Random Forest", "Boosting"),
         width = "100%",
       ),
       
@@ -55,14 +55,30 @@ ui <- fluidPage(
     
     # below, conditional on select input
     
-    # if input$choose_algo == "Greedy-Algorithm by Classification" or "Greedy-Algorithm by Regression"
+    # if input$choose_algo == "Greedy-Algorithm
     # have textinputs for max_depth and min_leaf_size
     conditionalPanel(
-      condition = "input.choose_algo == 'Greedy-Algorithm by Classification' || input.choose_algo == 'Greedy-Algorithm by Regression'",
+      condition = "input.choose_algo == 'Greedy-Algorithm'",
       div(
         style="position:absolute; top:750px; left:10px",
         column(width = 5, numericInput("max_depth", "Max Depth", value = 5, min= 1, step = 1, width = "80%")),
         column(width = 5, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%"))
+      )
+    ),
+    
+    conditionalPanel(
+      condition = "input.choose_algo == 'Cost Complexity Pruning'",
+      div(
+        style="position:absolute; top:750px; left:10px",
+        column(width = 5, numericInput("max_depth", "Max Depth", value = 5, min= 1, step = 1, width = "80%")),
+        column(width = 5, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%")),
+        sliderInput(
+          "prune_level",
+          "Pruning level",
+          min = 1,
+          max = 20,
+          value = 1
+        )
       )
     ),
     
