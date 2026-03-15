@@ -1,5 +1,11 @@
 To-Do:
 
+- Wrapper für Random Forests
+
+- Wrapper für Bagging-Algorithmus
+
 - Error in der Tree generation (i.e wenn Parameter zu strikt sind/falscher typ von target) sollen GUI-Error werfen anstatt Terminal 
 
 - Canvas soll auf mind. Windowbreite gestreckt werden damit kein nerviger weißer Rand mehr entsteht
+
+(-Split Condition soll wenn nicht vorhande/leafs nicht angezeigt werden)
