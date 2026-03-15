@@ -23,9 +23,9 @@ predict_bag <- S7::new_generic("predict_bag", "bagging")
 
 # Get a single tree from the bagged ensemble
 # same like in random forests
-S7::method(get_tree, Bagging) <- function(bagging, b) {
-    if (b < 1 || b > bagging@ref$B) stop("Tree index out of range!\n")
-    return(bagging@ref$trees[[b]])
+S7::method(get_tree, Bagging) <- function(rf, b) {
+    if (b < 1 || b > rf@ref$B) stop("Tree index out of range!\n")
+    return(rf@ref$trees[[b]])
 }
 
 # Fit the Bagging ensemble to training data
