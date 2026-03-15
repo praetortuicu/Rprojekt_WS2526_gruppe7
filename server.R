@@ -93,15 +93,26 @@ server <- function(input, output, session){
     #use chosen algorithm
     #start timer
     tic()
-    tree <- switch(
+    model <- switch(
       input$choose_algo,
       "Greedy-Algorithm" = generate_greedy_cart_tree(db(), input$max_depth, input$min_leaf_size),
       "Cost Complexity Pruning" = generate_pruned_cart_tree(db(), input$max_depth, input$min_leaf_size, input$prune_level),
-      "Bagging" = generate_bagging_tree(db()),
-      "Random Forest" = generate_random_forest_tree(db()),
-      "Boosting" = generate_boosting_tree(db()),
-      "Test" = generate_test_tree()#TEMP
+      "Bagging" = generate_bagging_forest(db(), input$n_trees),
+      "Random Forest" = generate_random_forest(db(), input$n_trees, input$max_depth, input$min_leaf_size),
+      "Boosting" = generate_boosting_forest(db()),
+      "Test" = generate_test_tree()
     )
+    
+    tree <- model
+    
+    if(input$choose_algo %in% c("Bagging","Random Forest")){
+      
+      tree_index <- input$tree_index
+      
+      tree <- get_tree(model, tree_index)
+      
+    }
+    
     #end timer
     t <- toc(quiet = TRUE)
     timer(t$toc - t$tic)

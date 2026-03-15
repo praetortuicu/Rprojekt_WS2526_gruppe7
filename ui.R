@@ -43,7 +43,7 @@ ui <- fluidPage(
       selectInput(
         "choose_algo",
         "Choose Algorithm",
-        choices = c("Choose Algorithm", "Greedy-Algorithm", "Cost Complexity Pruning", "Bagging", "Random Forest", "Boosting"),
+        choices = c("Choose Algorithm", "Greedy-Algorithm", "Cost Complexity Pruning", "Random Forest", "Bagging", "Boosting"),
         width = "100%",
       ),
       
@@ -74,6 +74,23 @@ ui <- fluidPage(
         column(width = 4, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%")),
         column(width = 5, numericInput("prune_level", "Prune Level", value = 1, min = 0, step = 1, width = "80%"))
       )
+    ),
+    
+    conditionalPanel(
+      condition = "input.choose_algo == 'Bagging' || input.choose_algo == 'Random Forest' || input.choose_algo == 'Boosting'",
+      div(
+        style="position:absolute; top:750px; left:10px",
+        column(width = 4, numericInput("max_depth", "Max Depth", value = 5, min= 1, step = 1, width = "80%")),
+        column(width = 4, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%")),
+        column(width = 5, numericInput("n_trees", "Number of Trees", value = 10, min = 1, step = 1, width = "80%"))
+      ),
+      column(width=5, sliderInput(
+        "tree_index",
+        "Tree in Ensemble",
+        min = 1,
+        max = 100,
+        value = 1
+      ))
     ),
     
     # ---------- RECHTS UNTER CANVAS ----------
