@@ -56,8 +56,18 @@ S7::method(fit_bag, Bagging) <- function(bagging, X, y) {
 # Predict using the Bagging ensemble for a single observation
 #
 # Get predictions from all B trees and combines them to make a prediction
+# Like random forset
 S7::method(predict_bag, Bagging) <- function(bagging, x) {
-    # TODO
-#   - for Regression: mean of all predictions
-#   - for Classification:  majority class across all predictions
+  # Safety like random forests
+    if (is.null(bagging@ref$trees[[1]])) { stop("Ensemble has not been fitted!\n") }
+
+    preds <- vapply(bagging@ref$trees, function(tree) {
+        predict_tree(tree, x)
+    }, numeric(1))
+
+    if (bagging@ref$type == "regression") {
+        return(mean(preds))
+    } else {
+        return(as.integer(which.max(tabulate(as.integer(preds)))))
+    }
 }
