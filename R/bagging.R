@@ -21,14 +21,28 @@ predict_bag <- S7::new_generic("predict_bag", "bagging")
 
 ###     METHODS     ###
 
-# Get a single tree from the bagged ensemble
-# same like in random forests
+#' Get a single tree from the bagged ensemble
+#'
+#' @name Bagging@get_tree
+#' @param bagging A Bagging object
+#' @param b Integer index of the tree
+#' @return The `CART` object stored at index `b`
+#' @examples
+#' get_tree(bagging, 1L)
 S7::method(get_tree, Bagging) <- function(rf, b) {
     if (b < 1 || b > rf@ref$B) stop("Tree index out of range!\n")
     return(rf@ref$trees[[b]])
 }
 
-# Fit the Bagging ensemble to training data
+#' Fit the Bagging ensemble to training data
+#'
+#' @name Bagging@fit_bag
+#' @param bagging A Bagging object
+#' @param X Matrix of predictors
+#' @param y Numeric target vector
+#' @return Invisibly returns `NULL`
+#' @examples
+#' fit_bag(bag, X, y)
 S7::method(fit_bag, Bagging) <- function(bagging, X, y) {
     # Safety copied from random forests
     if (!is.matrix(X)) {
@@ -59,6 +73,15 @@ S7::method(fit_bag, Bagging) <- function(bagging, X, y) {
 #
 # Get predictions from all B trees and combines them to make a prediction
 # Like random forset
+
+#' Predict using the Bagging ensemble
+#'
+#' @name Bagging@predict_bag
+#' @param bagging A Bagging object
+#' @param x Numeric vector representing one observation
+#' @return Numeric prediction
+#' @examples
+#' predict_bag(bag, c(0.1, 0.2))
 S7::method(predict_bag, Bagging) <- function(bagging, x) {
   # Safety like random forests
     if (is.null(bagging@ref$trees[[1]])) { stop("Ensemble has not been fitted!\n") }
