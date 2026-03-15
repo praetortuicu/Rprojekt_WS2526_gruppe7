@@ -1,6 +1,6 @@
 Bagging <- S7::new_class("Bagging",
     properties = list(
-        ref = s7::new_property(s7::class_environment, default = new.env(parent = emptyenv()))
+        ref = S7::new_property(S7::class_environment, default = new.env(parent = emptyenv()))
     ),
     constructor = function(type = "regression", b = 100L, max_depth = 10L, min_leaf_size = 1L) {
         env <- new.env(parent = emptyenv())
@@ -9,7 +9,7 @@ Bagging <- S7::new_class("Bagging",
         env$max_depth <- max_depth
         env$min_leaf_size <- min_leaf_size
         env$trees <- vector("list", b)
-        s7::new_object(s7::s7_object(), ref = env)
+        S7::new_object(S7::S7_object(), ref = env)
     }
 )
 ###     GENERICS    ###
@@ -22,9 +22,8 @@ predict_bag <- S7::new_generic("predict_bag", "bagging")
 # Get a single tree from the bagged ensemble
 # same like in random forests
 S7::method(get_tree, Bagging) <- function(bagging, b) {
-    # TODO refactor copied code from rnadom forests for bagging
-    if	(b	<	1	||	b	>	rf@ref$B)	{	stop("Tree index out of range!\n")	}
-    return(rf@ref$trees[[b]])
+    if (b < 1 || b > bagging@ref$B) stop("Tree index out of range!\n")
+    return(bagging@ref$trees[[b]])
 }
 
 # Fit the Bagging ensemble to training data
