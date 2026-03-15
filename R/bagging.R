@@ -1,16 +1,18 @@
 Bagging <- S7::new_class("Bagging",
-    properties = list(
-        ref = S7::new_property(S7::class_environment, default = new.env(parent = emptyenv()))
-    ),
-    constructor = function(type = "regression", b = 100L, max_depth = 10L, min_leaf_size = 1L) {
-        env <- new.env(parent = emptyenv())
-        env$type <- type
-        env$b <- b
-        env$max_depth <- max_depth
-        env$min_leaf_size <- min_leaf_size
-        env$trees <- vector("list", b)
-        S7::new_object(S7::S7_object(), ref = env)
-    }
+  properties = list(
+    ref = S7::new_property(S7::class_environment,
+            default = new.env(parent = emptyenv()))
+  ),
+  constructor = function(type = "regression", B = 100L,
+                         max_depth = 10L, min_leaf_size = 1L) {
+    env               <- new.env(parent = emptyenv())
+    env$type          <- type
+    env$B             <- B
+    env$max_depth     <- max_depth
+    env$min_leaf_size <- min_leaf_size
+    env$trees         <- vector("list", B)
+    S7::new_object(S7::S7_object(), ref = env)
+  }
 )
 ###     GENERICS    ###
 
