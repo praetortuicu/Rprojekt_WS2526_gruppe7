@@ -18,20 +18,21 @@ Bagging <- S7::new_class("Bagging",
 
 fit_bag <- S7::new_generic("fit_bag", "bagging")
 predict_bag <- S7::new_generic("predict_bag", "bagging")
+#get_tree <- S7::new_generic("get_tree", "object")
 
 ###     METHODS     ###
 
 #' Get a single tree from the bagged ensemble
 #'
 #' @name Bagging@get_tree
-#' @param bagging A Bagging object
+#' @param object A Bagging object
 #' @param b Integer index of the tree
 #' @return The `CART` object stored at index `b`
 #' @examples
 #' get_tree(bagging, 1L)
-S7::method(get_tree, Bagging) <- function(rf, b) {
-    if (b < 1 || b > rf@ref$B) stop("Tree index out of range!\n")
-    return(rf@ref$trees[[b]])
+S7::method(get_tree, Bagging) <- function(object, b) {
+  if (b < 1 || b > object@ref$B) stop("Tree index out of range!\n")
+  object@ref$trees[[b]]
 }
 
 #' Fit the Bagging ensemble to training data

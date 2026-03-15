@@ -22,7 +22,7 @@ RandomForest	<-	S7::new_class("RandomForest",
 ###		GENERICS	###
 fit_rf					<-	S7::new_generic("fit_rf",					"rf")
 predict_rf				<-	S7::new_generic("predict_rf",				"rf")
-get_tree				<-	S7::new_generic("get_tree",					"rf")
+get_tree <- S7::new_generic("get_tree", "object")
 get_feature_importance	<-	S7::new_generic("get_feature_importance",	"rf")
 compute_importance		<-	S7::new_generic("compute_importance",		"rf")
 
@@ -31,14 +31,14 @@ compute_importance		<-	S7::new_generic("compute_importance",		"rf")
 #'	Get a single tree from the forest
 #'
 #'	@name		RandomForest@get_tree
-#'	@param		rf		A RandomForest object
+#'	@param		object		A RandomForest object
 #'	@param		b		Integer index of the tree
 #'	@return				A RandomForestCART object
 #'	@examples
 #'	get_tree(rf,	1L)
-S7::method(get_tree,	RandomForest)	<-	function(rf,	b)	{
-		if	(b	<	1	||	b	>	rf@ref$B)	{	stop("Tree index out of range!\n")	}
-		return(rf@ref$trees[[b]])
+S7::method(get_tree, RandomForest) <- function(object, b) {
+  if (b < 1 || b > object@ref$B) stop("Tree index out of range!\n")
+  object@ref$trees[[b]]
 }
 
 #'	Get feature importance scores

@@ -7,6 +7,7 @@ source("R/cart.R")
 source("R/cost_complexity_pruning.R")
 source("R/random_forests.R")
 source("R/random_forests_cart.R")
+source("R/bagging.R")
 
 node_radius <- 20
 
@@ -325,4 +326,45 @@ generate_random_forest <- function(db, B, max_depth, min_leaf_size){
   fit_rf(rf, X, y)
   
   return(rf)
+}
+
+generate_bagging_forest <- function(db, B, max_depth, min_leaf_size){
+  
+  if(nrow(db) == 0){
+    stop("Database empty")
+  }
+  
+  if(!"target" %in% names(db)){
+    stop("Column 'target' must exist")
+  }
+  
+  # ---------- TYPE ----------
+  if(is.numeric(db$target)){
+    type <- "regression"
+    y <- as.numeric(db$target)
+  } else {
+    type <- "classification"
+    y <- as.integer(as.factor(db$target))
+  }
+  
+  # ---------- FEATURES ----------
+  feature_cols <- setdiff(names(db), c("Entry_ID","target"))
+  
+  if(length(feature_cols) == 0){
+    stop("No feature columns available")
+  }
+  
+  X <- as.matrix(db[, feature_cols, drop = FALSE])
+  
+  # ---------- BAGGING ----------
+  bag <- Bagging(
+    type = type,
+    B = B,
+    max_depth = max_depth,
+    min_leaf_size = min_leaf_size
+  )
+  
+  fit_bag(bag, X, y)
+  
+  return(bag)
 }

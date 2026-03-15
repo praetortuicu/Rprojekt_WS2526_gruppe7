@@ -88,68 +88,73 @@ server <- function(input, output, session){
     
   })
   
-  observeEvent(input$confirm_draw_tree,{
+  observeEvent(input$confirm_draw_tree, {
+    
     removeModal()
-    #use chosen algorithm
-    #start timer
-    tic()
-    model <- switch(
-      input$choose_algo,
-      "Greedy-Algorithm" = generate_greedy_cart_tree(db(), input$max_depth, input$min_leaf_size),
-      "Cost Complexity Pruning" = generate_pruned_cart_tree(db(), input$max_depth, input$min_leaf_size, input$prune_level),
-      "Bagging" = generate_bagging_forest(db(), input$n_trees),
-      "Random Forest" = generate_random_forest(db(), input$n_trees, input$max_depth, input$min_leaf_size),
-      "Boosting" = generate_boosting_forest(db()),
-      "Test" = generate_test_tree()
-    )
     
-    tree <- model
-    
-    if(input$choose_algo %in% c("Bagging","Random Forest")){
+    tryCatch({
       
-      tree_index <- input$tree_index
+      # Timer starten
+      tic()
       
-      tree <- get_tree(model, tree_index)
-      
-    }
-    
-    #end timer
-    t <- toc(quiet = TRUE)
-    timer(t$toc - t$tic)
-    
-    #print(tree)
-    
-    depth(tree@ref$depth)
-    num_leafs(tree@ref$n_leaves)
-    
-    #computate tree layout
-    layout <- computate_node_layout(tree)
-    
-    #print(layout$nodes)
-    
-    nodes_df <- data.frame(
-      id = layout$nodes$node_id,
-      parent_id = layout$nodes$parent_id,
-      x = layout$nodes$x,
-      y = layout$nodes$y,
-      s_feature = layout$nodes$s_feature,
-      s_value = layout$nodes$s_value,
-      depth = layout$nodes$depth,
-      is_leaf = layout$nodes$is_leaf
-    )
-    #send draw command to canvas with node positions and other info
-    print(layout$nodes)
-    print(layout$canvas_width)
-    print(layout$canvas_height)
-    
-    session$sendCustomMessage(
-      "draw_tree",
-      list(
-        nodes = nodes_df,
-        width = ifelse(is.null(layout$canvas_width), 800, layout$canvas_width),
-        height = layout$canvas_height
+      # Model generieren abhängig vom Algorithmus
+      model <- switch(
+        input$choose_algo,
+        "Greedy-Algorithm" = generate_greedy_cart_tree(db(), input$max_depth, input$min_leaf_size),
+        "Cost Complexity Pruning" = generate_pruned_cart_tree(db(), input$max_depth, input$min_leaf_size, input$prune_level),
+        "Bagging" = generate_bagging_forest(db(), input$n_trees, input$max_depth, input$min_leaf_size),
+        "Random Forest" = generate_random_forest(db(), input$n_trees, input$max_depth, input$min_leaf_size),
+        "Test" = generate_test_tree()
       )
-    )
+      
+      tree <- model
+      
+      if(input$choose_algo %in% c("Bagging","Random Forest")){
+        tree_index <- input$tree_index
+        tree <- get_tree(model, tree_index)
+      }
+      
+      # Timer stoppen
+      t <- toc(quiet = TRUE)
+      timer(t$toc - t$tic)
+      
+      # Tree-Metadaten setzen
+      depth(tree@ref$depth)
+      num_leafs(tree@ref$n_leaves)
+      
+      # Layout berechnen
+      layout <- computate_node_layout(tree)
+      
+      nodes_df <- data.frame(
+        id = layout$nodes$node_id,
+        parent_id = layout$nodes$parent_id,
+        x = layout$nodes$x,
+        y = layout$nodes$y,
+        s_feature = layout$nodes$s_feature,
+        s_value = layout$nodes$s_value,
+        depth = layout$nodes$depth,
+        is_leaf = layout$nodes$is_leaf
+      )
+      
+      # Tree an Canvas senden
+      session$sendCustomMessage(
+        "draw_tree",
+        list(
+          nodes = nodes_df,
+          width = ifelse(is.null(layout$canvas_width), 800, layout$canvas_width),
+          height = layout$canvas_height
+        )
+      )
+      
+    }, error = function(e) {
+      # Fehler abfangen und Modal anzeigen
+      showModal(modalDialog(
+        title = "Fehler beim Erstellen des Baums",
+        paste("Es ist ein Fehler aufgetreten:", e$message),
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    })
     
   })
   
