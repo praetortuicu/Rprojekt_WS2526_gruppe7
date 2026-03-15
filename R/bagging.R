@@ -28,8 +28,29 @@ S7::method(get_tree, Bagging) <- function(bagging, b) {
 
 # Fit the Bagging ensemble to training data
 S7::method(fit_bag, Bagging) <- function(bagging, X, y) {
-    # TODO Implement
-    # Similar to random forest code but with replace = TRUE
+    # Safety copied from random forests
+    if (!is.matrix(X)) {
+        stop("X must be a matrix!\n")
+    }
+    if (nrow(X) != length(y)) {
+        stop("X and y must have same number of rows!\n")
+    }
+
+    n <- nrow(X)
+
+    for (b in seq_len(bagging@ref$B)) {
+        # bootstrap sample
+        idx  <- sample(n, n, replace = TRUE)
+
+        tree <- CART(
+        type          = bagging@ref$type,
+        max_depth     = bagging@ref$max_depth,
+        min_leaf_size = bagging@ref$min_leaf_size
+        )
+        fit(tree, X[idx, , drop = FALSE], y[idx])
+
+        bagging@ref$trees[[b]] <- tree
+    }
 }
 
 # Predict using the Bagging ensemble for a single observation
