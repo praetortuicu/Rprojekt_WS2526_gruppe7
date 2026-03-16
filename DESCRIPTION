@@ -2,7 +2,8 @@ Package: rrandomforests
 Title: Random Forests Regression and Classification Algorithm
 Version: 0.0.0.9000
 Authors@R: c( 
-    person("Yousef", "Khell", "yousef.khell@stud.uni-heidelber.de", role = c("aut", "cre")),
+    person("Yousef", "Khell", "yousef.khell@stud.uni-heidelberg.de", role = c("aut", "cre")),
+	person("Paul",	"Proft", "paul.proft@stud.uni-heidelberg.de", role = c("aut", "cre")),
 	person("Teodor", "Ticu", "teodor.ticu@stud.uni-heidelberg.de", role = c("aut", "cre"))
 	)
 Description: Implements the Random Forests Algorithm for Regression and Classification.
@@ -22,3 +23,5 @@ Collate:
 	'cart.R'
 	'random_forests_cart.R'
 	'random_forests.R'
+	'bagging.R'
+	'cost_complexity_pruning.R'
