@@ -1,0 +1,11 @@
+To-Do:
+
+- Wrapper für Bagging-Algorithmus - done?
+
+- Irgendwas mit Predicting machen? - kann man in ui selbst folgen, aber methoden im Bericht zeigen
+
+- Files aufräumen und einheitlich kommentieren?? - no shot
+
+- adjust prune levels in input range according to advice - done
+
+- checkout why larger data breaks Random Forests - zoom level
