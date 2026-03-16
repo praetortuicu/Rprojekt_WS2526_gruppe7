@@ -1,6 +1,9 @@
 library(shiny)
 library(ggplot2)
 
+#get_tree gneric to extract a single tree from the ensemble (for random forests and bagging)
+get_tree <- S7::new_generic("get_tree", "object")
+
 source("R/node.R")
 source("R/binary_tree.R")
 source("R/cart.R")

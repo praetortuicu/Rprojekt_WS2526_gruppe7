@@ -1,15 +1,11 @@
 To-Do:
 
-- Wrapper für Random Forests - done 
-
-- Wrapper für Bagging-Algorithmus - 
-
-- Error in der Tree generation (i.e wenn Parameter zu strikt sind/falscher typ von target) sollen GUI-Error werfen anstatt Terminal - done
-
-- Canvas soll auf mind. Windowbreite gestreckt werden damit kein nerviger weißer Rand mehr entsteht - done
-
-(-Split Condition soll wenn nicht vorhande/leafs nicht angezeigt werden) - done
+- Wrapper für Bagging-Algorithmus - done?
 
 - Irgendwas mit Predicting machen?
 
-- Tree-Slider soll korrekte Position unter max_depth annehmen - done 
+- Files aufräumen und einheitlich kommentieren??
+
+- adjust prune levels in input range according to advice
+
+- checkout why larger data breaks Random Forests 

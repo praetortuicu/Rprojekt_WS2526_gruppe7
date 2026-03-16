@@ -22,7 +22,7 @@ RandomForest	<-	S7::new_class("RandomForest",
 ###		GENERICS	###
 fit_rf					<-	S7::new_generic("fit_rf",					"rf")
 predict_rf				<-	S7::new_generic("predict_rf",				"rf")
-get_tree <- S7::new_generic("get_tree", "object")
+#get_tree <- S7::new_generic("get_tree", "object")
 get_feature_importance	<-	S7::new_generic("get_feature_importance",	"rf")
 compute_importance		<-	S7::new_generic("compute_importance",		"rf")
 

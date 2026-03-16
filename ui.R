@@ -78,7 +78,7 @@ ui <- fluidPage(
           column(width = 4, numericInput("min_leaf_size", "Min Leaf Size", value = 5, min = 1, step = 1, width = "80%"))
         ),
         fluidRow(
-          column(width = 4, numericInput("prune_level", "Prune Level", value = 1, min = 0, step = 1, width = "80%"))
+          column(width = 4, numericInput("prune_level", "Prune Index", value = 1, min = 0, step = 1, width = "80%"))
         )
       )
     ),
