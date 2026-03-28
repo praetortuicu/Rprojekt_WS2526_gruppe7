@@ -380,5 +380,65 @@ observeEvent(input$confirm_clear_data, {
   reset_database(db)
   removeModal()
 })
+
+observeEvent(input$load_csv, {
+  showModal(
+    modalDialog(
+      title = "Load CSV Dataset",
+      fileInput("csv_file", "Choose CSV File", accept = ".csv"),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("confirm_load_csv", "Confirm")
+      )
+    )
+  )
   
+})
+
+observeEvent(input$confirm_load_csv, {
+  req(input$csv_file)
+  
+  tryCatch({
+    new_db <- read.csv(
+      input$csv_file$datapath,
+      header = FALSE,              # erste Zeile ist Daten!
+      stringsAsFactors = FALSE
+    )
+    
+    # Spalte finden mit nur 1 und -1
+    is_target_col <- sapply(new_db, function(col) {
+      all(na.omit(col) %in% c(1, -1))
+    })
+    
+    # Prüfen ob genau eine solche Spalte existiert
+    if (sum(is_target_col) != 1) {
+      stop("Es muss genau eine Target-Spalte mit nur 1 und -1 geben.")
+    }
+    
+    # Target extrahieren und in Boolean umwandeln
+    target <- new_db[[which(is_target_col)]]
+    target_bool <- target == 1
+    
+    # Restliche Daten (Features)
+    features <- new_db[, !is_target_col, drop = FALSE]
+    
+    # Spalten durchnummerieren
+    colnames(features) <- paste0("V", seq_len(ncol(features)))
+    
+    # Finaler DataFrame
+    final_db <- cbind(features, target = target_bool)
+    
+    # In deine "DB" laden
+    update_db(final_db)
+    removeModal()
+  }, error = function(e) {
+    showModal(modalDialog(
+      title = "Fehler beim Laden der CSV-Datei",
+      paste("Es ist ein Fehler aufgetreten:", e$message),
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+})
+
 }

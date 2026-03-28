@@ -126,7 +126,10 @@ ui <- fluidPage(
       
       actionButton("generate_data","Generate Random Dataset", style="width:100%;"),
       
-      actionButton("clear_data", "Clear Current Dataset", style="width:100%; margin-top:10px")
+      actionButton("clear_data", "Clear Current Dataset", style="width:100%; margin-top:10px"),
+      
+      #test
+      actionButton("load_csv", "Load CSV Dataset", style="width:100%; margin-top:10px")
     )
   ),
   
