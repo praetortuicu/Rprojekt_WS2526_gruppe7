@@ -13,7 +13,6 @@ CART (Classification and Regression Trees). Includes a UI for interactively
 visualizing the generated trees.
 
 The implementation follows the theory presented in *Richter*.  
-Documentation is available under `man/`.
 
 ## Documentation
 
