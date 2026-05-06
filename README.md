@@ -3,6 +3,7 @@
 **Course project** · Programmiersprache R · Gruppe 7  
 Yousef Khell, Paul Proft, Teodor Ticu
 
+![Tree visualization](man/figures/image.png)
 ---
 
 ## About
@@ -14,10 +15,6 @@ visualizing the generated trees.
 The implementation follows the theory presented in *Richter*.  
 Documentation is available under `man/`.
 
-## Examples
-
-![Tree visualization](man/figures/image.png)
-
 ## Documentation
 
-Full documentation lives in [`man/`](man/).jj
+Full documentation lives in [`man/`](man/)
